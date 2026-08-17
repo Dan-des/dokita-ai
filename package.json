@@ -1,0 +1,20 @@
+{
+  "name": "dokita-ai",
+  "version": "1.0.0",
+  "description": "DokitaAI – Full-Stack Medical Triage Platform & WhatsApp Integration",
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "build:client": "npm --prefix client run build",
+    "build": "npm run build:client",
+    "start": "npm --prefix server start",
+    "test:api": "node server/tests/verify_api.js"
+  },
+  "keywords": ["medical-triage", "ai", "whatsapp", "telehealth"],
+  "author": "DokitaAI Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

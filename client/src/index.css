@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #0f172a;
+    background-color: #f8fafc;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.025em;
+  }
+
+  p, span, li, input, textarea, button {
+    font-family: 'Plus Jakarta Sans', 'IBM Plex Sans', sans-serif;
+  }
+}
+
+/* Crisp clinical button design: solid borders, zero harsh glow */
+.btn-medical {
+  @apply inline-flex items-center justify-center font-semibold rounded-xl transition-colors duration-150 select-none active:scale-[0.99] border;
+}
+
+.btn-primary {
+  @apply btn-medical bg-teal-700 hover:bg-teal-800 text-white border-teal-800 active:bg-teal-900;
+}
+
+.btn-secondary {
+  @apply btn-medical bg-slate-900 hover:bg-slate-800 text-white border-slate-900 active:bg-slate-950;
+}
+
+.btn-outline {
+  @apply btn-medical border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-800 active:bg-slate-200;
+}
+
+/* Solid clinical container without liquid glass or glow */
+.clinical-card {
+  @apply bg-white border border-slate-200/90 rounded-2xl;
+}
+
+/* Skeleton Loading Animation */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.skeleton-box {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  background-color: #e2e8f0;
+  border-radius: 0.75rem;
+}
+
+/* Custom clinical scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
