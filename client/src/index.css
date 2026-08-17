@@ -3,36 +3,29 @@
 @tailwind utilities;
 
 /* ============================================================
-   ROOT HEIGHT + OVERFLOW (critical for chat fixed layout)
-   Uses 100dvh (dynamic viewport height) so the chat never
-   gets pushed behind mobile browser address/nav bars.
+   ROOT HEIGHT + OVERFLOW
+   100dvh = dynamic viewport height (adjusts for mobile browser bars)
+   min-h-0 on flex children = critical for shrink to work correctly
    ============================================================ */
 html {
   height: 100%;
-  height: 100dvh;
-  overflow: hidden;
-  overscroll-behavior: none; /* prevent pull-to-refresh */
 }
 
 body {
   height: 100%;
-  height: 100dvh;
-  overflow: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior: none;    /* kill pull-to-refresh everywhere */
   -webkit-overflow-scrolling: touch;
 }
 
 #root {
   height: 100%;
-  height: 100dvh;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Landing / public pages: re-enable scroll */
+/* Re-enable scroll on landing pages */
 body.page-scroll {
-  overflow-y: auto;
   overscroll-behavior: auto;
-  height: auto;
 }
 
 @layer base {

@@ -27,13 +27,16 @@ const AppContent: React.FC = () => {
   const isChatRoute = location.pathname === '/chat';
 
   return (
-    <div className={`flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-700 selection:text-white font-sans ${isChatRoute ? 'h-screen h-[100dvh] overflow-hidden' : 'min-h-screen overflow-y-auto'}`}>
+    <div
+      className={`flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-700 selection:text-white font-sans ${isChatRoute ? 'overflow-hidden' : 'overflow-y-auto'}`}
+      style={isChatRoute ? { height: '100dvh', overscrollBehavior: 'none' } : { minHeight: '100dvh' }}
+    >
       <PageTitle />
 
       {/* Render Header only on standard site pages (never inside full-screen chat) */}
       {!isChatRoute && <Header onOpenFeedback={() => setFeedbackOpen(true)} />}
 
-      <main className={`flex-1 flex flex-col ${isChatRoute ? 'overflow-hidden' : ''}`}>
+      <main className={`flex-1 min-h-0 flex flex-col ${isChatRoute ? 'overflow-hidden' : ''}`}>
         <Routes>
           <Route path="/" element={<Home onOpenFeedback={() => setFeedbackOpen(true)} />} />
           

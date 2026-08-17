@@ -440,7 +440,10 @@ export const Chat: React.FC = () => {
   const activeRemindersCount = reminders.filter((r) => r.isActive).length;
 
   return (
-    <div className="flex h-screen h-[100dvh] w-screen bg-slate-100 overflow-hidden font-sans text-slate-900">
+    <div
+      className="flex h-full w-full min-h-0 bg-slate-100 overflow-hidden font-sans text-slate-900"
+      style={{ overscrollBehavior: 'none' }}
+    >
       {/* 1. COLLAPSIBLE SIDEBAR DRAWER (Overlay on Mobile & Tablet, Static on Large Desktops) */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-72 sm:w-80 lg:w-72 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out lg:static ${
@@ -641,7 +644,7 @@ export const Chat: React.FC = () => {
       )}
 
       {/* 2. MAIN FULL-SCREEN CHAT APPLICATION */}
-      <main className="flex-1 flex flex-col h-full bg-slate-50 relative overflow-hidden">
+      <main className="flex-1 min-h-0 flex flex-col bg-slate-50 relative overflow-hidden">
         {/* Top Header Bar (Optimized for Mobile, Tablet & Desktop) */}
         <header className="h-14 bg-white border-b border-slate-300 px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0 z-10">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
