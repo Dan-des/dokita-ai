@@ -4,17 +4,35 @@
 
 /* ============================================================
    ROOT HEIGHT + OVERFLOW (critical for chat fixed layout)
+   Uses 100dvh (dynamic viewport height) so the chat never
+   gets pushed behind mobile browser address/nav bars.
    ============================================================ */
-html,
-body,
+html {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none; /* prevent pull-to-refresh */
+}
+
+body {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
 #root {
   height: 100%;
+  height: 100dvh;
   overflow: hidden;
 }
 
-/* Allow the landing/home pages to scroll normally */
+/* Landing / public pages: re-enable scroll */
 body.page-scroll {
   overflow-y: auto;
+  overscroll-behavior: auto;
+  height: auto;
 }
 
 @layer base {

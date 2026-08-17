@@ -27,7 +27,7 @@ const AppContent: React.FC = () => {
   const isChatRoute = location.pathname === '/chat';
 
   return (
-    <div className={`flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-700 selection:text-white font-sans ${isChatRoute ? 'h-screen overflow-hidden' : 'min-h-screen overflow-y-auto'}`}>
+    <div className={`flex flex-col bg-slate-50 text-slate-900 selection:bg-teal-700 selection:text-white font-sans ${isChatRoute ? 'h-screen h-[100dvh] overflow-hidden' : 'min-h-screen overflow-y-auto'}`}>
       <PageTitle />
 
       {/* Render Header only on standard site pages (never inside full-screen chat) */}
