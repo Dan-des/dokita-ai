@@ -1,117 +1,84 @@
 /**
- * useNearbyHospitals — Real GPS-based hospital locator using OpenStreetMap Overpass API
- * Free, no API key required, works worldwide.
+ * useNearbyHospitals — Real GPS-based hospital locator
+ * Calls the DokitaAI backend which uses Google Places API (with OSM fallback).
+ * API key is kept securely server-side — never exposed in the frontend bundle.
  */
 
 export interface NearbyHospital {
-  id: number;
+  _id: string;
   name: string;
-  type: string;
-  distance: number; // in km
-  address?: string;
-  phone?: string;
-  emergency?: boolean;
-  lat: number;
-  lng: number;
-  mapsUrl: string;
+  address: string;
+  city: string;
+  state: string;
+  phone: string;
+  is24Hours: boolean;
+  latitude: number;
+  longitude: number;
+  distanceKm: number | null;
+  source: string;
+  rating?: number;
+  googleMapsUrl: string;
 }
 
-/**
- * Haversine formula — calculate km distance between two GPS coordinates
- */
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 /**
- * Fetch hospitals/clinics near a GPS coordinate using OpenStreetMap Overpass API
+ * Fetch hospitals/clinics near a GPS coordinate via DokitaAI backend
+ * (backend uses Google Places API with OSM fallback)
  */
 export async function fetchNearbyHospitals(
   lat: number,
   lng: number,
-  radiusMeters = 5000
+  radiusKm = 10
 ): Promise<NearbyHospital[]> {
-  const query = `
-    [out:json][timeout:20];
-    (
-      node["amenity"~"hospital|clinic|doctors|health_centre|pharmacy"](around:${radiusMeters},${lat},${lng});
-      way["amenity"~"hospital|clinic|doctors|health_centre"](around:${radiusMeters},${lat},${lng});
-    );
-    out center tags;
-  `;
+  const token = localStorage.getItem('dokita_token');
+  const url = `${API_BASE}/hospitals/nearby?lat=${lat}&lng=${lng}&radius=${radiusKm}`;
 
-  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+  const response = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    signal: AbortSignal.timeout(15000),
+  });
 
-  const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
-  if (!response.ok) throw new Error('Overpass API error');
+  if (!response.ok) {
+    throw new Error(`Hospital API error: ${response.status}`);
+  }
 
   const data = await response.json();
-  const elements: any[] = data.elements || [];
+  if (!data.success) throw new Error(data.message || 'Hospital lookup failed');
 
-  const results: NearbyHospital[] = elements
-    .map((el: any) => {
-      const elLat = el.lat ?? el.center?.lat;
-      const elLng = el.lon ?? el.center?.lon;
-      if (!elLat || !elLng) return null;
-
-      const tags = el.tags || {};
-      const name = tags.name || tags['name:en'] || 'Unnamed Facility';
-      const amenity = tags.amenity || 'health_facility';
-      const distance = haversineKm(lat, lng, elLat, elLng);
-      const emergency = tags.emergency === 'yes' || amenity === 'hospital';
-
-      return {
-        id: el.id,
-        name,
-        type: amenity.replace(/_/g, ' '),
-        distance: Math.round(distance * 10) / 10,
-        address: [tags['addr:street'], tags['addr:city']].filter(Boolean).join(', ') || undefined,
-        phone: tags.phone || tags['contact:phone'] || undefined,
-        emergency,
-        lat: elLat,
-        lng: elLng,
-        mapsUrl: `https://www.google.com/maps/search/?api=1&query=${elLat},${elLng}`,
-      } as NearbyHospital;
-    })
-    .filter(Boolean) as NearbyHospital[];
-
-  // Sort by distance, hospitals first
-  return results
-    .sort((a, b) => {
-      if (a.emergency && !b.emergency) return -1;
-      if (!a.emergency && b.emergency) return 1;
-      return a.distance - b.distance;
-    })
-    .slice(0, 10);
+  return data.hospitals as NearbyHospital[];
 }
 
 /**
  * Format hospital results into a clean chat-readable message
  */
-export function formatHospitalResults(hospitals: NearbyHospital[], userLat: number, userLng: number): string {
-  if (hospitals.length === 0) {
-    return `I searched within 5km of your GPS location but couldn't find any registered hospitals or clinics in OpenStreetMap's database for your area.\n\n**What you can do:**\n- Try Google Maps and search "hospitals near me"\n- Call the national emergency line: **112** or **767**\n- Ask me for specific hospital names in your city`;
+export function formatHospitalResults(hospitals: NearbyHospital[]): string {
+  if (!hospitals || hospitals.length === 0) {
+    return `I searched your GPS location but couldn't find registered hospitals nearby.\n\n**Try these instead:**\n- Search "hospitals near me" on Google Maps\n- Call national emergency line: **112** or **767**\n- Tell me your city (e.g. *"Find hospitals in Ikeja, Lagos"*)`;
   }
 
-  const lines = [
-    `📍 **Verified Facilities Near Your Location** (within 5km)\n`,
-    ...hospitals.slice(0, 8).map((h, i) => {
-      const emergencyTag = h.emergency ? ' 🚨 **[24/7 Emergency]**' : '';
-      const phoneStr = h.phone ? `\n   📞 ${h.phone}` : '';
-      const addressStr = h.address ? `\n   📌 ${h.address}` : '';
-      return `**${i + 1}. ${h.name}**${emergencyTag}\n   🏥 ${h.type} • ${h.distance}km away${addressStr}${phoneStr}\n   [Open in Maps](${h.mapsUrl})`;
-    }),
-    `\n---\n⚠️ *Data from OpenStreetMap. Always call ahead to confirm availability. For life-threatening emergencies, call **112** immediately.*`,
+  const lines: string[] = [
+    `📍 **Hospitals & Clinics Near You** (sorted by distance)\n`,
   ];
+
+  hospitals.slice(0, 8).forEach((h, i) => {
+    const emergencyTag = h.is24Hours ? ' 🚨 **24/7**' : '';
+    const distStr = h.distanceKm != null ? `${h.distanceKm}km away` : 'nearby';
+    const ratingStr = h.rating ? ` • ⭐ ${h.rating}` : '';
+    const sourceStr = h.source?.includes('Google') ? ' · *Google*' : ' · *OpenStreetMap*';
+    const phoneStr = h.phone && !h.phone.includes('112') ? `\n   📞 ${h.phone}` : '';
+
+    lines.push(
+      `**${i + 1}. ${h.name}**${emergencyTag}\n` +
+      `   📍 ${h.address}, ${h.city}${ratingStr}${sourceStr}\n` +
+      `   🚗 ${distStr}${phoneStr}\n` +
+      `   [Get Directions ↗](${h.googleMapsUrl})`
+    );
+  });
+
+  lines.push(
+    `\n---\n⚠️ *Always call ahead to confirm availability. Life-threatening emergency? Call **112** immediately.*`
+  );
 
   return lines.join('\n');
 }
@@ -127,10 +94,10 @@ export function isHospitalQuery(message: string): boolean {
     'nearest hospital', 'nearest clinic', 'find hospital', 'find clinic',
     'hospital around', 'doctors near', 'health centre near',
     '24/7 hospital', '24/7 emergency', 'hospital near me',
-    'find me a hospital', 'where is hospital',
+    'find me a hospital', 'where is hospital', 'hospitals around me',
     // Pidgin
     'hospital for here', 'find hospital for me', 'where i go find hospital',
-    'hospital wey dey near', 'emergency for near',
+    'hospital wey dey near', 'emergency for near', 'hospital near',
   ];
   return hospitalKeywords.some((kw) => lower.includes(kw));
 }

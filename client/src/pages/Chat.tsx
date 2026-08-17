@@ -214,7 +214,7 @@ export const Chat: React.FC = () => {
             const hospitals = await fetchNearbyHospitals(locationToUse.lat, locationToUse.lng);
             const hospitalMessage: ChatMessage = {
               role: 'assistant',
-              content: formatHospitalResults(hospitals, locationToUse.lat, locationToUse.lng),
+              content: formatHospitalResults(hospitals),
               timestamp: new Date().toISOString(),
             };
             setMessages((prev) => [...prev, hospitalMessage]);
