@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /chat
+Disallow: /api/
 
-Sitemap: https://dokita.ai/sitemap.xml
+Sitemap: https://dokitaai.vercel.app/sitemap.xml
