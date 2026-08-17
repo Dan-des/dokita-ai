@@ -15,6 +15,7 @@ import { exportDoctorReport } from '../utils/pdfExport';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useTextToSpeech } from '../hooks/useTextToSpeech';
 import { useReminders } from '../context/ReminderContext';
+import { fetchNearbyHospitals, formatHospitalResults, isHospitalQuery } from '../hooks/useNearbyHospitals';
 import { 
   Send, 
   FileDown, 
@@ -189,6 +190,53 @@ export const Chat: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // --- REAL GPS HOSPITAL LOCATOR ---
+      if (isHospitalQuery(textToSend)) {
+        let locationToUse = userLocation;
+
+        // Try to get fresh location if we don't have it yet
+        if (!locationToUse && navigator.geolocation) {
+          locationToUse = await new Promise((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                setUserLocation(loc);
+                resolve(loc);
+              },
+              () => resolve(null),
+              { timeout: 8000 }
+            );
+          });
+        }
+
+        if (locationToUse) {
+          try {
+            const hospitals = await fetchNearbyHospitals(locationToUse.lat, locationToUse.lng);
+            const hospitalMessage: ChatMessage = {
+              role: 'assistant',
+              content: formatHospitalResults(hospitals, locationToUse.lat, locationToUse.lng),
+              timestamp: new Date().toISOString(),
+            };
+            setMessages((prev) => [...prev, hospitalMessage]);
+            setIsLoading(false);
+            return;
+          } catch (err) {
+            console.warn('[Hospital Locator] Overpass API failed, falling back to AI', err);
+          }
+        } else {
+          // No location permission — tell user and fall through to AI
+          const noLocMessage: ChatMessage = {
+            role: 'assistant',
+            content: `📍 **Location Access Required**\n\nTo find hospitals near you, I need access to your device's location. Please:\n1. Allow location access when your browser prompts you\n2. Or manually tell me your city/area (e.g. *"Find hospitals in Ikeja, Lagos"*)\n\nAlternatively, call the national emergency line: **112** or **767** for immediate dispatch.`,
+            timestamp: new Date().toISOString(),
+          };
+          setMessages((prev) => [...prev, noLocMessage]);
+          setIsLoading(false);
+          return;
+        }
+      }
+      // --- END HOSPITAL LOCATOR ---
+
       const response = await askTriage({
         prompt: userMessage.content,
         sessionId: sessionId || undefined,
@@ -743,7 +791,7 @@ export const Chat: React.FC = () => {
               return (
                 <div
                   key={index}
-                  className={`flex gap-3 max-w-3xl lg:max-w-4xl mx-auto ${isUser ? 'justify-end' : 'justify-start'}`}
+                  className={`flex gap-3 max-w-3xl lg:max-w-4xl mx-auto msg-enter ${isUser ? 'justify-end' : 'justify-start'}`}
                 >
                   {!isUser && (
                     <div className="w-8 h-8 rounded-xl bg-teal-700 text-white flex items-center justify-center shrink-0 mt-1">

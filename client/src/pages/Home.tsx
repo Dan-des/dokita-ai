@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -26,6 +26,18 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
   const navigate = useNavigate();
   const [quickQuestion, setQuickQuestion] = useState('');
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Trigger entrance animations after mount
+  useEffect(() => {
+    // Allow landing pages to scroll
+    document.body.classList.add('page-scroll');
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => {
+      clearTimeout(t);
+      document.body.classList.remove('page-scroll');
+    };
+  }, []);
 
   const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '+2348003654824';
   const cleanPhone = whatsappNumber.replace(/[^0-9]/g, '');
@@ -37,8 +49,8 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
       icon: Globe,
     },
     {
-      title: 'Conversational Hospital Finder',
-      desc: 'Ask DokitaAI directly for 24/7 emergency rooms and verified clinics near your GPS location without leaving the chat.',
+      title: 'Real-Time Hospital Finder',
+      desc: 'Ask DokitaAI for nearby 24/7 emergency rooms and verified clinics using your live GPS location — no manual searching needed.',
       icon: Building2,
     },
     {
@@ -58,7 +70,6 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
   const handleLaunchChat = (promptText?: string) => {
     const text = (promptText || quickQuestion).trim();
     if (!isAuthenticated) {
-      // Require login / registration first
       navigate('/login', {
         state: {
           redirectAfter: '/chat',
@@ -79,28 +90,30 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
 
   return (
     <div className="space-y-12 pb-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      {/* 1. ONBOARDING HERO BANNER */}
+
+      {/* 1. HERO SECTION */}
       <section className="pt-8 md:pt-14 space-y-6 text-center">
+
         {/* Clinical Platform Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 text-xs font-semibold">
+        <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 text-xs font-semibold ${mounted ? 'anim-fade-down' : 'opacity-0'}`}>
           <ShieldCheck className="w-3.5 h-3.5 text-teal-700" />
           <span>Clinical AI Telehealth Assistant • Verified Guidelines (WHO / CDC / NHS)</span>
         </div>
 
         <div className="space-y-3 max-w-2xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Your 24/7 AI Health Companion & Triage Navigator
+          <h1 className={`text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight ${mounted ? 'anim-fade-up delay-100' : 'opacity-0'}`}>
+            Your 24/7 AI Health Companion &amp; Triage Navigator
           </h1>
-          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl mx-auto">
+          <p className={`text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl mx-auto ${mounted ? 'anim-fade-up delay-200' : 'opacity-0'}`}>
             Describe symptoms in your own words, find nearby verified emergency hospitals, and export structured clinical reports for doctors.
           </p>
         </div>
 
-        {/* Instant Question Form (Requires login to launch chat) */}
-        <div className="max-w-2xl mx-auto pt-2">
+        {/* Search bar */}
+        <div className={`max-w-2xl mx-auto pt-2 ${mounted ? 'anim-scale-in delay-300' : 'opacity-0'}`}>
           <form
             onSubmit={handleFormSubmit}
-            className="p-2 bg-white rounded-2xl border border-slate-300 flex flex-col sm:flex-row items-center gap-2"
+            className="p-2 bg-white rounded-2xl border border-slate-300 flex flex-col sm:flex-row items-center gap-2 shadow-sm hover:shadow-md transition-shadow duration-300"
           >
             <div className="flex items-center gap-2.5 px-3 py-2 w-full">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
@@ -114,7 +127,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
             </div>
             <button
               type="submit"
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-95"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-95 hover:-translate-y-0.5"
             >
               <span>Launch Chat</span>
               <ArrowRight className="w-4 h-4" />
@@ -125,21 +138,30 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
           <div className="flex flex-wrap items-center justify-center gap-1.5 pt-3">
             <span className="text-[11px] font-semibold text-slate-400 mr-1">Quick Prompts:</span>
             {samplePrompts.map((symptom, idx) => (
-              <SymptomChip
+              <div
                 key={idx}
-                label={symptom}
-                onClick={() => handleLaunchChat(symptom)}
-              />
+                className={mounted ? `anim-fade-up` : 'opacity-0'}
+                style={{ animationDelay: `${400 + idx * 80}ms` }}
+              >
+                <SymptomChip
+                  label={symptom}
+                  onClick={() => handleLaunchChat(symptom)}
+                />
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 2. ONBOARDING CAPABILITIES (What DokitaAI Does) */}
+      {/* 2. CAPABILITY CARDS */}
       <section className="space-y-4 pt-4">
         <div className="text-center space-y-1">
-          <h2 className="text-lg font-bold text-slate-900">How DokitaAI Helps You</h2>
-          <p className="text-xs text-slate-500">Everything accessible inside one conversational assistant</p>
+          <h2 className={`text-lg font-bold text-slate-900 ${mounted ? 'anim-fade-up delay-400' : 'opacity-0'}`}>
+            How DokitaAI Helps You
+          </h2>
+          <p className={`text-xs text-slate-500 ${mounted ? 'anim-fade-up delay-500' : 'opacity-0'}`}>
+            Everything accessible inside one conversational assistant
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -148,10 +170,11 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
             return (
               <div
                 key={i}
-                className="bg-white p-5 rounded-2xl border border-slate-300 space-y-2.5 flex flex-col justify-between"
+                className={`bg-white p-5 rounded-2xl border border-slate-300 space-y-2.5 flex flex-col justify-between hover-lift cursor-default ${mounted ? 'anim-fade-up' : 'opacity-0'}`}
+                style={{ animationDelay: `${500 + i * 100}ms` }}
               >
                 <div className="space-y-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center anim-float" style={{ animationDelay: `${i * 400}ms` }}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <h3 className="text-sm font-bold text-slate-900">{cap.title}</h3>
@@ -163,11 +186,11 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
         </div>
       </section>
 
-      {/* 3. EMERGENCY TOLL-FREE HOTLINES & WHATSAPP ACCESS */}
-      <section className="bg-white p-6 rounded-2xl border border-slate-300 space-y-4">
+      {/* 3. EMERGENCY HOTLINES */}
+      <section className={`bg-white p-6 rounded-2xl border border-slate-300 space-y-4 ${mounted ? 'anim-fade-up delay-700' : 'opacity-0'}`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-center justify-center shrink-0 anim-pulse-ring">
               <PhoneCall className="w-5 h-5" />
             </div>
             <div>
@@ -179,13 +202,13 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
           <div className="flex items-center gap-2">
             <a
               href="tel:112"
-              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
+              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
             >
               National: 112
             </a>
             <a
               href="tel:767"
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors"
+              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
             >
               Emergency: 767
             </a>
@@ -200,7 +223,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
             href={`https://wa.me/${cleanPhone}?text=Hello%20DokitaAI,%20I%20need%20medical%20triage%20assistance.`}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shrink-0"
+            className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 shrink-0 hover:-translate-y-0.5 active:scale-95"
           >
             <span>Open in WhatsApp</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -208,16 +231,16 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
         </div>
       </section>
 
-      {/* 4. CLINICAL FAQ SECTION */}
-      <section className="pt-2">
+      {/* 4. FAQ SECTION */}
+      <section className={`pt-2 ${mounted ? 'anim-fade-up delay-800' : 'opacity-0'}`}>
         <FAQSection />
       </section>
 
       {/* 5. FOOTER ACTIONS */}
-      <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+      <div className={`flex flex-wrap items-center justify-center gap-3 pt-4 ${mounted ? 'anim-fade-up delay-800' : 'opacity-0'}`}>
         <button
           onClick={() => setShareModalOpen(true)}
-          className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
+          className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer hover:-translate-y-0.5"
         >
           <Share2 className="w-3.5 h-3.5 text-teal-700" />
           <span>Share DokitaAI with Family</span>
@@ -225,7 +248,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
 
         <button
           onClick={onOpenFeedback}
-          className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
+          className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer hover:-translate-y-0.5"
         >
           <HelpCircle className="w-3.5 h-3.5 text-teal-700" />
           <span>Submit Clinical Feedback</span>
