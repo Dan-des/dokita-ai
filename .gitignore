@@ -41,3 +41,4 @@ Thumbs.db
 
 # Temporary test data
 server/tests/*.tmp
+.vercel
