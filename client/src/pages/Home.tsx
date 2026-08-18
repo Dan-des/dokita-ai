@@ -30,13 +30,8 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
 
   // Trigger entrance animations after mount
   useEffect(() => {
-    // Allow landing pages to scroll
-    document.body.classList.add('page-scroll');
     const t = setTimeout(() => setMounted(true), 50);
-    return () => {
-      clearTimeout(t);
-      document.body.classList.remove('page-scroll');
-    };
+    return () => clearTimeout(t);
   }, []);
 
   const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '+2348003654824';

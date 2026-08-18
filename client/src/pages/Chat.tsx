@@ -50,13 +50,13 @@ import {
   Stethoscope
 } from 'lucide-react';
 
-// AI progress steps shown while loading
+// AI progress steps shown while loading — one at a time, no emojis
 const PROGRESS_STEPS = [
-  '🔍 Identifying symptoms and context...',
-  '📚 Consulting WHO / CDC / NHS guidelines...',
-  '💊 Checking drug interactions & safety...',
-  '🏥 Searching clinical triage protocols...',
-  '✍️ Curating personalised response...',
+  'Identifying symptoms and context...',
+  'Consulting WHO / CDC / NHS guidelines...',
+  'Checking drug interactions & safety...',
+  'Searching clinical triage protocols...',
+  'Curating personalised response...',
 ];
 
 type ChatMode = 'ai' | 'websearch';
@@ -129,6 +129,12 @@ export const Chat: React.FC = () => {
       }
     }
   };
+
+  // Add chat-page class to body to disable pull-to-refresh, remove on unmount
+  useEffect(() => {
+    document.body.classList.add('chat-page');
+    return () => document.body.classList.remove('chat-page');
+  }, []);
 
   // Reset on user switch
   useEffect(() => {
@@ -954,26 +960,21 @@ export const Chat: React.FC = () => {
             })
           )}
 
-          {/* Loading — AI Progress Steps */}
+          {/* Loading — single animated step, switches at intervals */}
           {isLoading && (
             <div className="flex gap-3 max-w-3xl lg:max-w-4xl mx-auto justify-start">
               <div className="w-8 h-8 rounded-xl bg-teal-700 text-white flex items-center justify-center shrink-0 mt-1">
                 <Bot className="w-4 h-4" />
               </div>
-              <div className="bg-white border border-slate-300 rounded-2xl rounded-tl-xs p-4 space-y-2 min-w-[220px]">
-                {PROGRESS_STEPS.map((step, i) => (
-                  <div
-                    key={i}
-                    className={`flex items-center gap-2 text-xs transition-all duration-500 ${
-                      i === progressStep ? 'text-teal-700 font-semibold opacity-100' : 'text-slate-400 opacity-40'
-                    }`}
-                  >
-                    {i === progressStep && <Loader2 className="w-3 h-3 animate-spin shrink-0" />}
-                    {i < progressStep && <Check className="w-3 h-3 text-emerald-500 shrink-0" />}
-                    {i > progressStep && <div className="w-3 h-3 shrink-0" />}
-                    <span>{step}</span>
-                  </div>
-                ))}
+              <div className="bg-white border border-slate-300 rounded-2xl rounded-tl-xs px-4 py-3 flex items-center gap-3 min-w-[200px]">
+                <Loader2 className="w-3.5 h-3.5 text-teal-700 animate-spin shrink-0" />
+                <span
+                  key={progressStep}
+                  className="text-xs text-slate-600 font-medium animate-pulse"
+                  style={{ animationDuration: '1.5s' }}
+                >
+                  {PROGRESS_STEPS[progressStep]}
+                </span>
               </div>
             </div>
           )}

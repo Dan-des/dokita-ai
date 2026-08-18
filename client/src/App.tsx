@@ -36,7 +36,7 @@ const AppContent: React.FC = () => {
       {/* Render Header only on standard site pages (never inside full-screen chat) */}
       {!isChatRoute && <Header onOpenFeedback={() => setFeedbackOpen(true)} />}
 
-      <main className={`flex-1 min-h-0 flex flex-col ${isChatRoute ? 'overflow-hidden' : ''}`}>
+      <main className={`flex-1 flex flex-col ${isChatRoute ? 'min-h-0 overflow-hidden' : ''}`}>
         <Routes>
           <Route path="/" element={<Home onOpenFeedback={() => setFeedbackOpen(true)} />} />
           

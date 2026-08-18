@@ -3,29 +3,29 @@
 @tailwind utilities;
 
 /* ============================================================
-   ROOT HEIGHT + OVERFLOW
-   100dvh = dynamic viewport height (adjusts for mobile browser bars)
-   min-h-0 on flex children = critical for shrink to work correctly
+   ROOT LAYOUT
+   - html/body/root have NO fixed height — home page must be able to scroll
+   - The chat page manages its own viewport height via fixed positioning
    ============================================================ */
-html {
-  height: 100%;
+html, body {
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  height: 100%;
-  overscroll-behavior: none;    /* kill pull-to-refresh everywhere */
   -webkit-overflow-scrolling: touch;
 }
 
 #root {
-  height: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
-/* Re-enable scroll on landing pages */
-body.page-scroll {
-  overscroll-behavior: auto;
+/* Disable pull-to-refresh on chat page (added via JS class on body) */
+body.chat-page {
+  overscroll-behavior: none;
+  overflow: hidden;
 }
 
 @layer base {
