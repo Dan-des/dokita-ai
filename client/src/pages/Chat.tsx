@@ -428,15 +428,31 @@ export const Chat: React.FC = () => {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  // Helper to format inline bold text without leaving raw asterisks
+  // Helper to format inline bold text and markdown links without leaving raw syntax
   const formatInlineText = (text: string) => {
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    // Regex matching either **bold** or [label](url)
+    const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g);
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return (
           <strong key={index} className="font-semibold text-slate-900">
             {part.slice(2, -2)}
           </strong>
+        );
+      }
+      if (part.startsWith('[') && part.includes('](')) {
+        const label = part.match(/\[([^\]]+)\]/)?.[1] || '';
+        const url = part.match(/\(([^)]+)\)/)?.[1] || '';
+        return (
+          <a
+            key={index}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-teal-700 hover:text-teal-900 font-semibold underline inline-flex items-center gap-0.5"
+          >
+            {label}
+          </a>
         );
       }
       return part.replace(/\*/g, '');
@@ -1097,10 +1113,10 @@ export const Chat: React.FC = () => {
               </div>
             )}
 
-            {/* Interactive Intelligence Engine & Quick Action Toolbar (Gemini / Antigravity Style) */}
-            <div className="flex items-center justify-between gap-2 overflow-visible">
+            {/* Interactive Intelligence Engine Selector (Gemini / Antigravity Style) */}
+            <div className="flex items-center justify-between overflow-visible py-0.5">
               {/* Gemini / Antigravity Model Selector Dropdown Pill */}
-              <div className="relative shrink-0" ref={modeDropdownRef}>
+              <div className="relative" ref={modeDropdownRef}>
                 <button
                   type="button"
                   onClick={() => setModeDropdownOpen(!modeDropdownOpen)}
@@ -1196,21 +1212,24 @@ export const Chat: React.FC = () => {
                 )}
               </div>
 
-              {/* Quick Suggestion Chips */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none min-w-0">
-                <span className="text-[10px] font-semibold text-slate-400 shrink-0 uppercase hidden sm:inline">Quick:</span>
-                {symptomSuggestions.slice(0, 3).map((item, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    disabled={isLoading}
-                    onClick={() => handleSendMessage(item)}
-                    className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 hover:bg-teal-50 border border-slate-200 text-slate-600 hover:text-teal-700 hover:border-teal-300 transition-colors shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer truncate max-w-[140px] sm:max-w-none"
-                  >
-                    + {item.split(' ').slice(0, 3).join(' ')}
-                  </button>
-                ))}
-              </div>
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider select-none pr-1">
+                {chatMode === 'ai' ? '🤖 Clinical Mode' : '🌐 Research Mode'}
+              </span>
+            </div>
+
+            {/* Quick Suggestion Chips (Separate vertical row for 100% visibility on all devices) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none min-w-0">
+              {symptomSuggestions.slice(0, 4).map((item, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => handleSendMessage(item)}
+                  className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-slate-100 hover:bg-teal-50 border border-slate-200 text-slate-600 hover:text-teal-700 hover:border-teal-300 transition-colors shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer truncate max-w-[140px] sm:max-w-none"
+                >
+                  + {item.split(' ').slice(0, 3).join(' ')}
+                </button>
+              ))}
             </div>
 
             {/* Prompt Input Form */}
