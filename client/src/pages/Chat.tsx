@@ -810,7 +810,7 @@ export const Chat: React.FC = () => {
       )}
 
       {/* 2. MAIN CHAT PANEL */}
-      <main className="flex-1 h-full min-h-0 min-w-0 flex flex-col bg-slate-50 relative overflow-hidden">
+      <main className="flex-1 min-h-0 min-w-0 flex flex-col bg-slate-50 relative overflow-hidden">
         {/* Top Header Bar (Optimized for Mobile, Tablet & Desktop) */}
         <header className="h-14 bg-white border-b border-slate-300 px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0 z-10">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">

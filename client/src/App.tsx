@@ -26,37 +26,15 @@ const AppContent: React.FC = () => {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const isChatRoute = location.pathname === '/chat';
 
-  // Dynamically lock html & body heights/overflows specifically for the chat route.
-  // This prevents mobile URL bar / keyboard expansions from shifting layouts, and cleanly restores natural scrolling on navigation/logout.
+  // Manage body overflow for chat vs standard pages
   React.useEffect(() => {
     if (isChatRoute) {
-      document.documentElement.style.height = '100%';
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.height = '100%';
       document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = '0';
-      document.body.style.left = '0';
     } else {
-      document.documentElement.style.height = '';
-      document.documentElement.style.overflow = '';
-      document.body.style.height = '';
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
     }
     return () => {
-      document.documentElement.style.height = '';
-      document.documentElement.style.overflow = '';
-      document.body.style.height = '';
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
     };
   }, [isChatRoute]);
 
