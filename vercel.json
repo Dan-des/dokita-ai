@@ -3,6 +3,12 @@
   "installCommand": "npm install --prefix client --include=dev && npm install --prefix server",
   "buildCommand": "npm run build --prefix client",
   "outputDirectory": "client/dist",
+  "crons": [
+    {
+      "path": "/api/reminders/cron-trigger",
+      "schedule": "* * * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

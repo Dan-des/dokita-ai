@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { safeStorage } from '../utils/storage';
+import { apiClient } from '../api/client';
 
 export interface MedicationReminder {
   id: string;
@@ -28,6 +29,39 @@ interface ReminderContextType {
 
 const ReminderContext = createContext<ReminderContextType | undefined>(undefined);
 
+const VAPID_PUBLIC_KEY = 'BI-IyOdOrPucrDn_u48HUecrFd-rOiwyCtM8ykle-zg1sU2vpZwNSjKK0FtDJ8JE7Z1kBxsFo7LgleJc9R_MbqE';
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function subscribeUserToPush(): Promise<PushSubscription | null> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return null;
+  }
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+    return subscription;
+  } catch (err) {
+    console.warn('[Push Subscription Error]', err);
+    return null;
+  }
+}
+
 export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
 
@@ -45,27 +79,54 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return 'default';
   });
 
-  // Whenever the authenticated user changes (Login, Logout, Account Switch), reload strictly that user's reminders
+  // Whenever the authenticated user changes, load reminders from DB or localStorage
   useEffect(() => {
-    const key = getUserKey();
-    try {
-      const saved = safeStorage.getItem(key);
-      setReminders(saved ? JSON.parse(saved) : []);
-    } catch {
-      setReminders([]);
-    }
-    setActiveAlert(null); // Clear any pending alert from previous account
-  }, [getUserKey]);
+    const loadReminders = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await apiClient.get('/reminders');
+          if (response.data?.success) {
+            setReminders(response.data.reminders.map((r: any) => ({
+              id: r.reminderId,
+              medication: r.medication,
+              dosage: r.dosage,
+              time: r.time,
+              instructions: r.instructions,
+              isActive: r.isActive,
+              startDate: r.createdAt
+            })));
+            return;
+          }
+        } catch (err) {
+          console.warn('[Sync Reminders Load Failed, falling back to local]', err);
+        }
+      }
 
-  // Persist reminders to the current user's isolated storage key
+      // Guest / Fallback localStorage loading
+      const key = getUserKey();
+      try {
+        const saved = safeStorage.getItem(key);
+        setReminders(saved ? JSON.parse(saved) : []);
+      } catch {
+        setReminders([]);
+      }
+    };
+
+    loadReminders();
+    setActiveAlert(null); // Clear any pending alert from previous account
+  }, [getUserKey, isAuthenticated]);
+
+  // Persist reminders to local storage only for guests
   useEffect(() => {
-    const key = getUserKey();
-    try {
-      safeStorage.setItem(key, JSON.stringify(reminders));
-    } catch (e) {
-      console.error('[Reminder Save Error]', e);
+    if (!isAuthenticated) {
+      const key = getUserKey();
+      try {
+        safeStorage.setItem(key, JSON.stringify(reminders));
+      } catch (e) {
+        console.error('[Reminder Save Error]', e);
+      }
     }
-  }, [reminders, getUserKey]);
+  }, [reminders, getUserKey, isAuthenticated]);
 
   const requestNotificationPermission = async (): Promise<boolean> => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -82,33 +143,81 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const addReminder = useCallback(
     (med: Omit<MedicationReminder, 'id' | 'startDate' | 'isActive'>): MedicationReminder => {
+      const id = `med_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
       const newReminder: MedicationReminder = {
         ...med,
-        id: `med_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        id,
         startDate: new Date().toISOString(),
         isActive: true,
       };
 
       setReminders((prev) => [newReminder, ...prev]);
 
-      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission().then((p) => setNotificationPermission(p));
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        if (Notification.permission === 'granted' && isAuthenticated) {
+          subscribeUserToPush().then((subscription) => {
+            if (subscription) {
+              apiClient.post('/reminders', {
+                reminderId: id,
+                medication: med.medication,
+                dosage: med.dosage,
+                time: med.time,
+                instructions: med.instructions,
+                subscription,
+                isActive: true
+              }).catch(err => console.warn('[Backend Reminder Sync Failed]', err));
+            }
+          });
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission().then((p) => {
+            setNotificationPermission(p);
+            if (p === 'granted' && isAuthenticated) {
+              subscribeUserToPush().then((subscription) => {
+                if (subscription) {
+                  apiClient.post('/reminders', {
+                    reminderId: id,
+                    medication: med.medication,
+                    dosage: med.dosage,
+                    time: med.time,
+                    instructions: med.instructions,
+                    subscription,
+                    isActive: true
+                  }).catch(err => console.warn('[Backend Reminder Sync Failed]', err));
+                }
+              });
+            }
+          });
+        }
       }
 
       return newReminder;
     },
-    []
+    [isAuthenticated]
   );
 
   const toggleReminder = useCallback((id: string) => {
     setReminders((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, isActive: !r.isActive } : r))
+      prev.map((r) => {
+        if (r.id === id) {
+          const nextActive = !r.isActive;
+          if (isAuthenticated) {
+            apiClient.put(`/reminders/${id}`, { isActive: nextActive })
+              .catch(err => console.warn('[Backend Reminder Toggle Failed]', err));
+          }
+          return { ...r, isActive: nextActive };
+        }
+        return r;
+      })
     );
-  }, []);
+  }, [isAuthenticated]);
 
   const deleteReminder = useCallback((id: string) => {
     setReminders((prev) => prev.filter((r) => r.id !== id));
-  }, []);
+    if (isAuthenticated) {
+      apiClient.delete(`/reminders/${id}`)
+        .catch(err => console.warn('[Backend Reminder Delete Failed]', err));
+    }
+  }, [isAuthenticated]);
 
   const dismissActiveAlert = useCallback(() => {
     setActiveAlert(null);

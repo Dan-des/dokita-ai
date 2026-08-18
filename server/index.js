@@ -10,6 +10,7 @@ const chatRoutes = require('./routes/chat');
 const hospitalRoutes = require('./routes/hospital');
 const feedbackRoutes = require('./routes/feedback');
 const whatsappRoutes = require('./routes/whatsapp');
+const reminderRoutes = require('./routes/reminder');
 
 const app = express();
 
@@ -61,6 +62,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/webhook', whatsappRoutes);
+app.use('/api/reminders', reminderRoutes);
 
 // 404 Route Handler
 app.use((req, res) => {
