@@ -566,7 +566,10 @@ export const Chat: React.FC = () => {
   const setupNeeded = !locationGranted || !notifGranted;
 
   return (
-    <div className="flex-1 w-full flex bg-slate-100 font-sans text-slate-900 overflow-hidden relative min-h-0">
+    <div
+      className="fixed inset-0 z-10 flex bg-slate-100 font-sans text-slate-900 overflow-hidden w-full"
+      style={{ height: 'var(--visual-viewport-height, 100dvh)' }}
+    >
       {/* 1. SIDEBAR */}
       <aside
         className={`flex-shrink-0 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col transition-all duration-300 ease-in-out overflow-hidden z-40 ${
@@ -955,28 +958,28 @@ export const Chat: React.FC = () => {
           style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
         >
           {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto space-y-6 py-6 px-2">
-              <div className="w-14 h-14 rounded-2xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center">
-                <Bot className="w-7 h-7" />
+            <div className="py-4 px-2 max-w-xl mx-auto space-y-4 text-center my-auto">
+              <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center mx-auto shadow-xs">
+                <Bot className="w-6 h-6" />
               </div>
-              <div className="space-y-2">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+              <div className="space-y-1">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                   {user ? `Hello ${user.name}, how can DokitaAI assist you today?` : 'How can DokitaAI assist you today?'}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
                   Type or speak symptoms in English, Pidgin, Yoruba, Hausa, or Igbo — check drug safety, set medication reminders, or find nearby 24/7 hospitals.
                 </p>
               </div>
-              <div className="space-y-2 w-full pt-1">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Tap to start:</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="space-y-1.5 pt-1 w-full text-left">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center">Tap a clinical question:</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {symptomSuggestions.map((item, i) => (
                     <button
                       key={i}
                       onClick={() => handleSendMessage(item)}
-                      className="w-full text-left px-3.5 py-3 rounded-xl text-xs bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-300 hover:border-teal-700 transition-colors flex items-center justify-between group cursor-pointer"
+                      className="w-full text-left px-3 py-2.5 rounded-xl text-xs bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-300 hover:border-teal-700 transition-colors flex items-center justify-between group cursor-pointer shadow-xs"
                     >
-                      <span className="truncate pr-2">{item}</span>
+                      <span className="truncate pr-2 font-medium">{item}</span>
                       <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-700 shrink-0" />
                     </button>
                   ))}
@@ -1090,21 +1093,21 @@ export const Chat: React.FC = () => {
         </div>
 
         {/* Pinned Bottom Input Form */}
-        <div className="bg-white border-t border-slate-300 p-2.5 sm:p-4 md:px-8 shrink-0 z-20 shadow-md pb-[max(0.625rem,env(safe-area-inset-bottom))]">
-          <div className="max-w-3xl lg:max-w-4xl mx-auto space-y-2">
+        <div className="bg-white border-t border-slate-300 px-3 py-2 sm:px-6 sm:py-3 shrink-0 z-30 shadow-md pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+          <div className="max-w-3xl lg:max-w-4xl mx-auto space-y-1.5">
             {/* Live Listening Status Banner */}
             {isListening && (
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-teal-50 border border-teal-300 text-teal-900 text-xs animate-pulse">
+              <div className="flex items-center justify-between p-2 rounded-xl bg-teal-50 border border-teal-300 text-teal-900 text-xs animate-pulse">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-                  <span className="font-semibold">Listening... Speak symptoms clearly into your microphone</span>
+                  <span className="font-semibold text-[11px] sm:text-xs">Listening... Speak symptoms clearly</span>
                 </div>
                 <button
                   type="button"
                   onClick={stopListening}
                   className="px-2 py-0.5 rounded bg-teal-700 text-white font-medium text-[11px] cursor-pointer"
                 >
-                  Done Speaking
+                  Done
                 </button>
               </div>
             )}
@@ -1115,32 +1118,27 @@ export const Chat: React.FC = () => {
               </div>
             )}
 
-            {/* Interactive Intelligence Engine Selector (Gemini / Antigravity Style) */}
-            <div className="flex items-center justify-between overflow-visible py-0.5">
+            {/* Micro Toolbar: Model Selector & Quick Chips in one sleek row */}
+            <div className="flex items-center justify-between gap-2 overflow-visible">
               {/* Gemini / Antigravity Model Selector Dropdown Pill */}
-              <div className="relative" ref={modeDropdownRef}>
+              <div className="relative shrink-0" ref={modeDropdownRef}>
                 <button
                   type="button"
                   onClick={() => setModeDropdownOpen(!modeDropdownOpen)}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white hover:bg-slate-100/90 border border-slate-200 hover:border-slate-300 text-slate-800 text-xs font-semibold shadow-xs transition-all cursor-pointer select-none active:scale-95"
-                  title="Select AI Intelligence & Search Mode"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-all cursor-pointer shadow-xs active:scale-95"
                 >
                   {chatMode === 'ai' ? (
                     <>
-                      <div className="w-4 h-4 rounded-full bg-teal-100 flex items-center justify-center text-teal-700">
-                        <Sparkles className="w-2.5 h-2.5 fill-teal-700/20" />
-                      </div>
-                      <span className="text-slate-800 font-medium">Dokita AI Triage</span>
+                      <Sparkles className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+                      <span>Dokita AI Triage</span>
                     </>
                   ) : (
                     <>
-                      <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                        <Globe className="w-2.5 h-2.5" />
-                      </div>
-                      <span className="text-slate-800 font-medium">Web Search Mode</span>
+                      <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span>Live Web Search</span>
                     </>
                   )}
-                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${modeDropdownOpen ? 'rotate-180 text-teal-700' : ''}`} />
+                  <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${modeDropdownOpen ? 'rotate-180 text-teal-700' : ''}`} />
                 </button>
 
                 {/* Popover Dropdown Menu */}
@@ -1152,60 +1150,58 @@ export const Chat: React.FC = () => {
                     </div>
 
                     <div className="space-y-1">
-                      {/* 1. Dokita AI Triage */}
                       <button
                         type="button"
                         onClick={() => {
                           setChatMode('ai');
                           setModeDropdownOpen(false);
                         }}
-                        className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-3 cursor-pointer ${
+                        className={`w-full text-left p-2 rounded-xl transition-all flex items-start gap-2.5 cursor-pointer ${
                           chatMode === 'ai'
                             ? 'bg-teal-50/80 border border-teal-200 text-slate-900'
                             : 'hover:bg-slate-50 border border-transparent text-slate-700'
                         }`}
                       >
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                           chatMode === 'ai' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600'
                         }`}>
-                          <Sparkles className="w-4 h-4" />
+                          <Sparkles className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
                             <span className="text-xs font-bold text-slate-900">Dokita AI Triage</span>
                             {chatMode === 'ai' && <Check className="w-3.5 h-3.5 text-teal-700 shrink-0" />}
                           </div>
-                          <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                            Evidence-based clinical reasoning, symptom diagnosis & hospital locator
+                          <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
+                            Evidence-based clinical triage & hospital locator
                           </p>
                         </div>
                       </button>
 
-                      {/* 2. Web Search Mode */}
                       <button
                         type="button"
                         onClick={() => {
                           setChatMode('websearch');
                           setModeDropdownOpen(false);
                         }}
-                        className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-3 cursor-pointer ${
+                        className={`w-full text-left p-2 rounded-xl transition-all flex items-start gap-2.5 cursor-pointer ${
                           chatMode === 'websearch'
                             ? 'bg-blue-50/80 border border-blue-200 text-slate-900'
                             : 'hover:bg-slate-50 border border-transparent text-slate-700'
                         }`}
                       >
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                           chatMode === 'websearch' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600'
                         }`}>
-                          <Globe className="w-4 h-4" />
+                          <Globe className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
                             <span className="text-xs font-bold text-slate-900">Live Web Search</span>
                             {chatMode === 'websearch' && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
                           </div>
-                          <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                            Google Search grounding with live web citations & medical literature
+                          <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
+                            Google Search grounding with live citations
                           </p>
                         </div>
                       </button>
@@ -1214,37 +1210,33 @@ export const Chat: React.FC = () => {
                 )}
               </div>
 
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider select-none pr-1">
-                {chatMode === 'ai' ? '🤖 Clinical Mode' : '🌐 Research Mode'}
-              </span>
+              {/* Quick Prompt Chips (Micro scrollable row) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none min-w-0 flex-1 justify-end">
+                {symptomSuggestions.slice(0, 3).map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => handleSendMessage(item)}
+                    className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 hover:bg-teal-50 border border-slate-200 text-slate-600 hover:text-teal-700 transition-colors shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer truncate max-w-[120px]"
+                  >
+                    + {item.split(' ').slice(0, 2).join(' ')}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Quick Suggestion Chips (Separate vertical row for 100% visibility on all devices) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none min-w-0">
-              {symptomSuggestions.slice(0, 4).map((item, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleSendMessage(item)}
-                  className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-slate-100 hover:bg-teal-50 border border-slate-200 text-slate-600 hover:text-teal-700 hover:border-teal-300 transition-colors shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer truncate max-w-[140px] sm:max-w-none"
-                >
-                  + {item.split(' ').slice(0, 3).join(' ')}
-                </button>
-              ))}
-            </div>
-
-            {/* Prompt Input Form */}
+            {/* Unified Input Box */}
             <form
               onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
-              className="relative flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-700/20 focus-within:border-teal-700 transition-colors"
+              className="relative flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-700/20 focus-within:border-teal-700 transition-colors"
             >
               {isSpeechSupported && (
                 <button
                   type="button"
                   onClick={handleToggleVoice}
                   disabled={isLoading}
-                  className={`p-2.5 rounded-xl transition-colors cursor-pointer ${
+                  className={`p-2 rounded-xl transition-colors cursor-pointer shrink-0 ${
                     isListening ? 'bg-red-500 text-white' : 'text-slate-500 hover:text-teal-800 hover:bg-teal-50'
                   }`}
                   title={isListening ? 'Stop listening' : 'Voice input'}
@@ -1260,18 +1252,18 @@ export const Chat: React.FC = () => {
                 disabled={isLoading}
                 placeholder={
                   chatMode === 'websearch'
-                    ? 'Search the web for medical info with citations...'
+                    ? 'Search web for medical info...'
                     : isListening
                     ? 'Listening... (speak now)'
-                    : 'Ask symptoms, drug safety, or hospital locations...'
+                    : 'Ask symptoms, medication safety, or hospitals...'
                 }
-                className="w-full px-2 py-2 text-xs sm:text-sm bg-transparent border-none focus:outline-none disabled:opacity-50 text-slate-800"
+                className="w-full px-2 py-1.5 text-xs sm:text-sm bg-transparent border-none focus:outline-none disabled:opacity-50 text-slate-800"
               />
 
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}
-                className="p-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white transition-colors active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                className="p-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white transition-colors active:scale-95 disabled:opacity-30 disabled:pointer-events-none cursor-pointer shrink-0"
               >
                 <Send className="w-4 h-4" />
               </button>
