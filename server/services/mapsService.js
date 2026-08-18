@@ -207,36 +207,35 @@ const queryGooglePlacesHospitals = async (lat, lng, radiusMeters = 25000, apiKey
  * Master dynamic live map locator
  * Dynamically queries Google Places (if key provided), Nominatim, Overpass, and local verified DB
  */
-const findNearbyHospitals = async (lat, lng, radiusKm = 30) => {
-  const radiusMeters = Math.min(Math.max(radiusKm * 1000, 5000), 50000);
+const findNearbyHospitals = async (lat, lng, radiusKm = 10) => {
+  const radiusMeters = Math.min(Math.max(radiusKm * 1000, 5000), 30000);
   const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
 
-  let liveResults = [];
+  console.log(`[Hospital Locator] Searching near (${lat}, ${lng}), radius ${radiusKm}km. Google key: ${apiKey ? 'SET' : 'NOT SET'}`);
 
-  // 1. If Google Maps key is set in environment, use Google Places
-  if (apiKey) {
-    liveResults = await queryGooglePlacesHospitals(lat, lng, radiusMeters, apiKey);
-  }
+  // Run Google Places + OSM Nominatim in parallel for speed
+  const [googleResults, nominatimResults] = await Promise.all([
+    apiKey ? queryGooglePlacesHospitals(lat, lng, radiusMeters, apiKey) : Promise.resolve([]),
+    queryNominatimHospitals(lat, lng, radiusKm),
+  ]);
 
-  // 2. Query Nominatim OpenStreetMap fast live engine (<1s)
-  if (liveResults.length === 0) {
-    liveResults = await queryNominatimHospitals(lat, lng, radiusKm);
-  }
+  let liveResults = googleResults.length > 0 ? googleResults : nominatimResults;
 
-  // 3. Fallback to Overpass if needed
+  // If still empty, try Overpass (slower)
   if (liveResults.length === 0) {
     liveResults = await queryOverpassHospitals(lat, lng, radiusMeters);
   }
 
-  // 4. Query local MongoDB hospitals and merge
+  console.log(`[Hospital Locator] Google: ${googleResults.length}, OSM: ${nominatimResults.length}, Using: ${liveResults.length}`);
+
+  // Merge with local DB hospitals that are within radius
   try {
     const dbHospitals = await Hospital.find().lean();
     const dbResults = dbHospitals
       .map((h) => {
-        let distance = null;
-        if (h.latitude != null && h.longitude != null) {
-          distance = calculateDistanceKm(lat, lng, h.latitude, h.longitude);
-        }
+        const distance = (h.latitude != null && h.longitude != null)
+          ? calculateDistanceKm(lat, lng, h.latitude, h.longitude)
+          : null;
         return {
           ...h,
           distanceKm: distance,
@@ -248,7 +247,7 @@ const findNearbyHospitals = async (lat, lng, radiusKm = 30) => {
       })
       .filter((h) => h.distanceKm !== null && h.distanceKm <= radiusKm);
 
-    // Merge without duplicate names
+    // Merge without duplicate names (live results take priority)
     const merged = [...liveResults];
     for (const dbItem of dbResults) {
       if (!merged.some((m) => m.name.toLowerCase() === dbItem.name.toLowerCase())) {
@@ -256,19 +255,12 @@ const findNearbyHospitals = async (lat, lng, radiusKm = 30) => {
       }
     }
 
-    // Sort by proximity ascending
-    merged.sort((a, b) => {
-      if (a.distanceKm === null && b.distanceKm === null) return 0;
-      if (a.distanceKm === null) return 1;
-      if (b.distanceKm === null) return -1;
-      return a.distanceKm - b.distanceKm;
-    });
-
-    return merged;
+    return merged.sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
   } catch (e) {
-    return liveResults.sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0));
+    return liveResults.sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
   }
 };
+
 
 module.exports = {
   findNearbyHospitals,
