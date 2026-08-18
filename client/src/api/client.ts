@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { safeStorage } from '../utils/storage';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -13,7 +14,7 @@ export const apiClient = axios.create({
 // Request interceptor to attach JWT token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('dokita_token');
+    const token = safeStorage.getItem('dokita_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,8 +30,8 @@ apiClient.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       const isAuthRoute = error.config.url?.includes('/auth/login') || error.config.url?.includes('/auth/register');
       if (!isAuthRoute) {
-        localStorage.removeItem('dokita_token');
-        localStorage.removeItem('dokita_user');
+        safeStorage.removeItem('dokita_token');
+        safeStorage.removeItem('dokita_user');
       }
     }
     return Promise.reject(error);

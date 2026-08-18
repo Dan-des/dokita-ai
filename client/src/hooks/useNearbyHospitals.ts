@@ -22,6 +22,8 @@ export interface NearbyHospital {
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
+import { safeStorage } from '../utils/storage';
+
 /**
  * Fetch hospitals/clinics near a GPS coordinate via DokitaAI backend
  * (backend uses Google Places API with OSM fallback)
@@ -31,7 +33,7 @@ export async function fetchNearbyHospitals(
   lng: number,
   radiusKm = 10
 ): Promise<NearbyHospital[]> {
-  const token = localStorage.getItem('dokita_token');
+  const token = safeStorage.getItem('dokita_token');
   const url = `${API_BASE}/hospitals/nearby?lat=${lat}&lng=${lng}&radius=${radiusKm}`;
 
   const response = await fetch(url, {

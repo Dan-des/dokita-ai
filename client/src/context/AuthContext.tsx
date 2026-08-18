@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 import { getMe } from '../api/auth';
+import { safeStorage } from '../utils/storage';
 
 interface AuthContextType {
   user: User | null;
@@ -18,32 +19,32 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     try {
-      const saved = localStorage.getItem('dokita_user');
+      const saved = safeStorage.getItem('dokita_user');
       return saved ? JSON.parse(saved) : null;
     } catch {
-      localStorage.removeItem('dokita_user');
+      safeStorage.removeItem('dokita_user');
       return null;
     }
   });
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('dokita_token');
+    return safeStorage.getItem('dokita_token');
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const initAuth = async () => {
-      const savedToken = localStorage.getItem('dokita_token');
+      const savedToken = safeStorage.getItem('dokita_token');
       if (savedToken) {
         try {
           const res = await getMe();
           if (res.success && res.user) {
             setUser(res.user);
-            localStorage.setItem('dokita_user', JSON.stringify(res.user));
+            safeStorage.setItem('dokita_user', JSON.stringify(res.user));
           }
         } catch (err) {
           console.warn('Session check failed, clearing token');
-          localStorage.removeItem('dokita_token');
-          localStorage.removeItem('dokita_user');
+          safeStorage.removeItem('dokita_token');
+          safeStorage.removeItem('dokita_user');
           setUser(null);
           setToken(null);
         }
@@ -55,15 +56,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (newToken: string, newUser: User) => {
-    localStorage.setItem('dokita_token', newToken);
-    localStorage.setItem('dokita_user', JSON.stringify(newUser));
+    safeStorage.setItem('dokita_token', newToken);
+    safeStorage.setItem('dokita_user', JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = () => {
-    localStorage.removeItem('dokita_token');
-    localStorage.removeItem('dokita_user');
+    safeStorage.removeItem('dokita_token');
+    safeStorage.removeItem('dokita_user');
     setToken(null);
     setUser(null);
   };
@@ -74,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await getMe();
       if (res.success && res.user) {
         setUser(res.user);
-        localStorage.setItem('dokita_user', JSON.stringify(res.user));
+        safeStorage.setItem('dokita_user', JSON.stringify(res.user));
       }
     } catch (err) {
       logout();

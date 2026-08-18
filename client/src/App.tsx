@@ -9,6 +9,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { ScrollToTop } from './components/ScrollToTop';
 import { InstallPwaBanner } from './components/InstallPwaBanner';
 import { PageTitle } from './components/PageTitle';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 import { Home } from './pages/Home';
 import { Chat } from './pages/Chat';
@@ -29,13 +30,20 @@ const AppContent: React.FC = () => {
   // Real-time Visual Viewport binding (tracks exact height above Samsung Browser & Chrome bottom bars)
   React.useEffect(() => {
     const updateViewportHeight = () => {
-      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      document.documentElement.style.setProperty('--visual-viewport-height', `${vh}px`);
+      try {
+        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        document.documentElement.style.setProperty('--visual-viewport-height', `${vh}px`);
+      } catch (err) {
+        console.warn('[Viewport Height Error]', err);
+      }
     };
 
     updateViewportHeight();
-    window.visualViewport?.addEventListener('resize', updateViewportHeight);
-    window.visualViewport?.addEventListener('scroll', updateViewportHeight);
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    if (vv) {
+      vv.addEventListener('resize', updateViewportHeight);
+      vv.addEventListener('scroll', updateViewportHeight);
+    }
     window.addEventListener('resize', updateViewportHeight);
 
     if (isChatRoute) {
@@ -45,8 +53,10 @@ const AppContent: React.FC = () => {
     }
 
     return () => {
-      window.visualViewport?.removeEventListener('resize', updateViewportHeight);
-      window.visualViewport?.removeEventListener('scroll', updateViewportHeight);
+      if (vv) {
+        vv.removeEventListener('resize', updateViewportHeight);
+        vv.removeEventListener('scroll', updateViewportHeight);
+      }
       window.removeEventListener('resize', updateViewportHeight);
       document.body.style.overflow = '';
     };
@@ -112,14 +122,16 @@ const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <ReminderProvider>
-        <Router>
-          <ScrollToTop />
-          <AppContent />
-        </Router>
-      </ReminderProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ReminderProvider>
+          <Router>
+            <ScrollToTop />
+            <AppContent />
+          </Router>
+        </ReminderProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 

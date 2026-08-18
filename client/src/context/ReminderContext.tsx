@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { safeStorage } from '../utils/storage';
 
 export interface MedicationReminder {
   id: string;
@@ -48,7 +49,7 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const key = getUserKey();
     try {
-      const saved = localStorage.getItem(key);
+      const saved = safeStorage.getItem(key);
       setReminders(saved ? JSON.parse(saved) : []);
     } catch {
       setReminders([]);
@@ -60,7 +61,7 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const key = getUserKey();
     try {
-      localStorage.setItem(key, JSON.stringify(reminders));
+      safeStorage.setItem(key, JSON.stringify(reminders));
     } catch (e) {
       console.error('[Reminder Save Error]', e);
     }

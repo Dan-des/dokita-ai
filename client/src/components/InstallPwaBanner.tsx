@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X, Smartphone } from 'lucide-react';
+import { safeStorage } from '../utils/storage';
 
 export const InstallPwaBanner: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -10,7 +11,7 @@ export const InstallPwaBanner: React.FC = () => {
       e.preventDefault();
       setDeferredPrompt(e);
       // Only show if not dismissed recently
-      const dismissed = localStorage.getItem('dokita_pwa_dismissed');
+      const dismissed = safeStorage.getItem('dokita_pwa_dismissed');
       if (!dismissed) {
         setShowBanner(true);
       }
@@ -35,7 +36,7 @@ export const InstallPwaBanner: React.FC = () => {
 
   const handleDismiss = () => {
     setShowBanner(false);
-    localStorage.setItem('dokita_pwa_dismissed', 'true');
+    safeStorage.setItem('dokita_pwa_dismissed', 'true');
   };
 
   if (!showBanner) return null;
