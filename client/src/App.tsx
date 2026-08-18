@@ -27,56 +27,14 @@ const AppContent: React.FC = () => {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const isChatRoute = location.pathname === '/chat';
 
-  // Real-time Visual Viewport binding (tracks exact height above Samsung Browser & Chrome bottom bars)
-  React.useEffect(() => {
-    const updateViewportHeight = () => {
-      try {
-        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        document.documentElement.style.setProperty('--visual-viewport-height', `${vh}px`);
-      } catch (err) {
-        console.warn('[Viewport Height Error]', err);
-      }
-    };
-
-    updateViewportHeight();
-    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-    if (vv) {
-      vv.addEventListener('resize', updateViewportHeight);
-      vv.addEventListener('scroll', updateViewportHeight);
-    }
-    window.addEventListener('resize', updateViewportHeight);
-
-    if (isChatRoute) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      if (vv) {
-        vv.removeEventListener('resize', updateViewportHeight);
-        vv.removeEventListener('scroll', updateViewportHeight);
-      }
-      window.removeEventListener('resize', updateViewportHeight);
-      document.body.style.overflow = '';
-    };
-  }, [isChatRoute]);
-
   return (
-    <div
-      className={`selection:bg-teal-700 selection:text-white font-sans ${
-        isChatRoute
-          ? 'fixed inset-0 flex flex-col overflow-hidden bg-slate-50 text-slate-900 z-0'
-          : 'min-h-screen flex flex-col bg-slate-50 text-slate-900'
-      }`}
-      style={isChatRoute ? { height: 'var(--visual-viewport-height, 100dvh)' } : undefined}
-    >
+    <div className="h-[100dvh] w-full flex flex-col overflow-hidden bg-slate-50 text-slate-900 font-sans selection:bg-teal-700 selection:text-white">
       <PageTitle />
 
       {/* Render Header only on standard site pages (never inside full-screen chat) */}
       {!isChatRoute && <Header onOpenFeedback={() => setFeedbackOpen(true)} />}
 
-      <main className={`flex-1 flex flex-col ${isChatRoute ? 'min-h-0 overflow-hidden' : ''}`}>
+      <main className={`flex-1 min-h-0 min-w-0 flex flex-col ${isChatRoute ? 'overflow-hidden h-full' : 'overflow-y-auto'}`}>
         <Routes>
           <Route path="/" element={<Home onOpenFeedback={() => setFeedbackOpen(true)} />} />
           

@@ -566,10 +566,7 @@ export const Chat: React.FC = () => {
   const setupNeeded = !locationGranted || !notifGranted;
 
   return (
-    <div
-      className="fixed inset-0 z-10 flex bg-slate-100 font-sans text-slate-900 overflow-hidden w-full"
-      style={{ height: 'var(--visual-viewport-height, 100dvh)' }}
-    >
+    <div className="h-full w-full flex bg-slate-100 font-sans text-slate-900 overflow-hidden relative min-h-0">
       {/* 1. SIDEBAR */}
       <aside
         className={`flex-shrink-0 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col transition-all duration-300 ease-in-out overflow-hidden z-40 ${
@@ -815,7 +812,7 @@ export const Chat: React.FC = () => {
       )}
 
       {/* 2. MAIN CHAT PANEL */}
-      <main className="flex-1 min-h-0 min-w-0 flex flex-col bg-slate-50 relative overflow-hidden">
+      <main className="flex-1 min-h-0 min-w-0 flex flex-col bg-slate-50 relative overflow-hidden h-full">
         {/* Top Header Bar (Optimized for Mobile, Tablet & Desktop) */}
         <header className="h-14 bg-white border-b border-slate-300 px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0 z-10">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
