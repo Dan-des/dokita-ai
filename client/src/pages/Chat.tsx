@@ -47,7 +47,9 @@ import {
   Globe,
   MapPin,
   RefreshCw,
-  Stethoscope
+  Stethoscope,
+  ChevronDown,
+  Sparkles
 } from 'lucide-react';
 
 // AI progress steps shown while loading — one at a time, no emojis
@@ -77,10 +79,12 @@ export const Chat: React.FC = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [reminderModalOpen, setReminderModalOpen] = useState<boolean>(false);
   const [chatMode, setChatMode] = useState<ChatMode>('ai');
+  const [modeDropdownOpen, setModeDropdownOpen] = useState<boolean>(false);
   const [progressStep, setProgressStep] = useState<number>(0);
   const [locationGranted, setLocationGranted] = useState<boolean>(false);
   const [notifGranted, setNotifGranted] = useState<boolean>(false);
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const modeDropdownRef = useRef<HTMLDivElement>(null);
 
   // Audio Read-Aloud TTS Hook
   const { speak, stop: stopSpeaking, speakingIndex, isSupported: isTtsSupported } = useTextToSpeech();
@@ -134,6 +138,24 @@ export const Chat: React.FC = () => {
   useEffect(() => {
     document.body.classList.add('chat-page');
     return () => document.body.classList.remove('chat-page');
+  }, []);
+
+  // Close intelligence mode dropdown on click outside or Escape key
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modeDropdownRef.current && !modeDropdownRef.current.contains(event.target as Node)) {
+        setModeDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setModeDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   // Reset on user switch
@@ -1008,48 +1030,120 @@ export const Chat: React.FC = () => {
               </div>
             )}
 
-            {/* Mode Toggle */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200 w-fit">
-              <button
-                type="button"
-                onClick={() => setChatMode('ai')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  chatMode === 'ai'
-                    ? 'bg-white text-teal-700 shadow-sm border border-slate-200'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Stethoscope className="w-3.5 h-3.5" />
-                AI Triage
-              </button>
-              <button
-                type="button"
-                onClick={() => setChatMode('websearch')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  chatMode === 'websearch'
-                    ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Globe className="w-3.5 h-3.5" />
-                Web Search
-              </button>
-            </div>
-
-            {/* Quick Suggestion Chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              <span className="text-[10px] font-semibold text-slate-400 shrink-0 mr-1 uppercase">Quick Add:</span>
-              {symptomSuggestions.slice(0, 4).map((item, idx) => (
+            {/* Interactive Intelligence Engine & Quick Action Toolbar (Gemini / Antigravity Style) */}
+            <div className="flex items-center justify-between gap-2 overflow-visible">
+              {/* Gemini / Antigravity Model Selector Dropdown Pill */}
+              <div className="relative shrink-0" ref={modeDropdownRef}>
                 <button
-                  key={idx}
                   type="button"
-                  disabled={isLoading}
-                  onClick={() => handleSendMessage(item)}
-                  className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:text-teal-700 hover:border-teal-300 hover:bg-teal-50 transition-colors shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer"
+                  onClick={() => setModeDropdownOpen(!modeDropdownOpen)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white hover:bg-slate-100/90 border border-slate-200 hover:border-slate-300 text-slate-800 text-xs font-semibold shadow-xs transition-all cursor-pointer select-none active:scale-95"
+                  title="Select AI Intelligence & Search Mode"
                 >
-                  + {item.split(' ').slice(0, 3).join(' ')}
+                  {chatMode === 'ai' ? (
+                    <>
+                      <div className="w-4 h-4 rounded-full bg-teal-100 flex items-center justify-center text-teal-700">
+                        <Sparkles className="w-2.5 h-2.5 fill-teal-700/20" />
+                      </div>
+                      <span className="text-slate-800 font-medium">Dokita AI Triage</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                        <Globe className="w-2.5 h-2.5" />
+                      </div>
+                      <span className="text-slate-800 font-medium">Web Search Mode</span>
+                    </>
+                  )}
+                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${modeDropdownOpen ? 'rotate-180 text-teal-700' : ''}`} />
                 </button>
-              ))}
+
+                {/* Popover Dropdown Menu */}
+                {modeDropdownOpen && (
+                  <div className="absolute bottom-full left-0 mb-2 w-72 sm:w-80 bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-900/10 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-slate-100 pb-2 mb-1">
+                      <span>Model & Grounding</span>
+                      <span className="text-[9px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded-md">Gemini Grounded</span>
+                    </div>
+
+                    <div className="space-y-1">
+                      {/* 1. Dokita AI Triage */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChatMode('ai');
+                          setModeDropdownOpen(false);
+                        }}
+                        className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-3 cursor-pointer ${
+                          chatMode === 'ai'
+                            ? 'bg-teal-50/80 border border-teal-200 text-slate-900'
+                            : 'hover:bg-slate-50 border border-transparent text-slate-700'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                          chatMode === 'ai' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-xs font-bold text-slate-900">Dokita AI Triage</span>
+                            {chatMode === 'ai' && <Check className="w-3.5 h-3.5 text-teal-700 shrink-0" />}
+                          </div>
+                          <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                            Evidence-based clinical reasoning, symptom diagnosis & hospital locator
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* 2. Web Search Mode */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChatMode('websearch');
+                          setModeDropdownOpen(false);
+                        }}
+                        className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start gap-3 cursor-pointer ${
+                          chatMode === 'websearch'
+                            ? 'bg-blue-50/80 border border-blue-200 text-slate-900'
+                            : 'hover:bg-slate-50 border border-transparent text-slate-700'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                          chatMode === 'websearch' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          <Globe className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-xs font-bold text-slate-900">Live Web Search</span>
+                            {chatMode === 'websearch' && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
+                          </div>
+                          <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                            Google Search grounding with live web citations & medical literature
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Suggestion Chips */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none min-w-0">
+                <span className="text-[10px] font-semibold text-slate-400 shrink-0 uppercase hidden sm:inline">Quick:</span>
+                {symptomSuggestions.slice(0, 3).map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => handleSendMessage(item)}
+                    className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 hover:bg-teal-50 border border-slate-200 text-slate-600 hover:text-teal-700 hover:border-teal-300 transition-colors shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer truncate max-w-[140px] sm:max-w-none"
+                  >
+                    + {item.split(' ').slice(0, 3).join(' ')}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Prompt Input Form */}
