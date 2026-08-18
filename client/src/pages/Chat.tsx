@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -43,8 +43,23 @@ import {
   Square,
   Bell,
   Pill,
-  X
+  X,
+  Globe,
+  MapPin,
+  RefreshCw,
+  Stethoscope
 } from 'lucide-react';
+
+// AI progress steps shown while loading
+const PROGRESS_STEPS = [
+  '🔍 Identifying symptoms and context...',
+  '📚 Consulting WHO / CDC / NHS guidelines...',
+  '💊 Checking drug interactions & safety...',
+  '🏥 Searching clinical triage protocols...',
+  '✍️ Curating personalised response...',
+];
+
+type ChatMode = 'ai' | 'websearch';
 
 export const Chat: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -57,12 +72,15 @@ export const Chat: React.FC = () => {
   const [sessionId, setSessionId] = useState<string>('');
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState<boolean>(false);
-  
-  // Side panel starts COLLAPSED by default
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [reminderModalOpen, setReminderModalOpen] = useState<boolean>(false);
+  const [chatMode, setChatMode] = useState<ChatMode>('ai');
+  const [progressStep, setProgressStep] = useState<number>(0);
+  const [locationGranted, setLocationGranted] = useState<boolean>(false);
+  const [notifGranted, setNotifGranted] = useState<boolean>(false);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Audio Read-Aloud TTS Hook
   const { speak, stop: stopSpeaking, speakingIndex, isSupported: isTtsSupported } = useTextToSpeech();
@@ -97,15 +115,13 @@ export const Chat: React.FC = () => {
     'What should I do for a sudden severe migraine?',
   ];
 
-  // Fetch session history for authenticated users
+  // Fetch session history
   const loadHistorySessions = async () => {
     if (isAuthenticated) {
       try {
         setIsLoadingSessions(true);
         const res = await getChatSessions();
-        if (res.success) {
-          setSessions(res.sessions || []);
-        }
+        if (res.success) setSessions(res.sessions || []);
       } catch (err) {
         console.error('Failed to load chat sessions:', err);
       } finally {
@@ -114,49 +130,56 @@ export const Chat: React.FC = () => {
     }
   };
 
-  // Completely wipe session and chat state when user switches or logs out to prevent cross-account leak
+  // Reset on user switch
   useEffect(() => {
     if (!isAuthenticated) {
-      setMessages([]);
-      setSessionId('');
-      setSessions([]);
+      setMessages([]); setSessionId(''); setSessions([]);
     } else {
-      setMessages([]);
-      setSessionId('');
+      setMessages([]); setSessionId('');
       loadHistorySessions();
     }
   }, [user?._id, (user as any)?.id, isAuthenticated]);
 
-  // Try fetching user location for automatic hospital proximity
+  // Request location on mount
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setUserLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          });
+          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setLocationGranted(true);
         },
-        () => {
-          console.log('[GPS Proximity]: Location permission not granted');
-        },
+        () => {},
         { timeout: 8000 }
       );
     }
+    // Check notification permission status
+    if ('Notification' in window) {
+      setNotifGranted(Notification.permission === 'granted');
+    }
   }, []);
 
-  // Auto-scroll to bottom of chat container
+  // Progress step cycling while loading
+  useEffect(() => {
+    if (isLoading) {
+      setProgressStep(0);
+      progressIntervalRef.current = setInterval(() => {
+        setProgressStep(p => (p + 1) % PROGRESS_STEPS.length);
+      }, 2200);
+    } else {
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    }
+    return () => { if (progressIntervalRef.current) clearInterval(progressIntervalRef.current); };
+  }, [isLoading]);
+
+  // Auto-scroll to bottom
   const scrollToBottom = () => {
     if (chatScrollContainerRef.current) {
       chatScrollContainerRef.current.scrollTop = chatScrollContainerRef.current.scrollHeight;
     }
   };
+  useEffect(() => { scrollToBottom(); }, [messages, isLoading]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
-
-  // Handle initial prompt from navigation state if any
+  // Handle initial prompt from navigation state
   useEffect(() => {
     const state = location.state as { initialPrompt?: string } | null;
     if (state?.initialPrompt) {
@@ -165,16 +188,31 @@ export const Chat: React.FC = () => {
     }
   }, [location.state]);
 
+  const requestLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocationGranted(true);
+      },
+      () => alert('Location access denied. Please allow it in your browser settings.'),
+      { timeout: 10000 }
+    );
+  };
+
+  const requestNotifications = async () => {
+    if (!('Notification' in window)) return;
+    const result = await Notification.requestPermission();
+    setNotifGranted(result === 'granted');
+  };
+
   const handleSendMessage = async (customPrompt?: string) => {
-    if (isListening) {
-      stopListening();
-    }
+    if (isListening) stopListening();
     stopSpeaking();
 
     const textToSend = customPrompt || inputValue;
     if (!textToSend.trim() || isLoading) return;
 
-    // Check if the user is setting a medication reminder via chat
     const parsedReminder = parseAndAddFromChat(textToSend);
 
     const userMessage: ChatMessage = {
@@ -183,97 +221,89 @@ export const Chat: React.FC = () => {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    if (!customPrompt) {
-      setInputValue('');
-    }
+    setMessages(prev => [...prev, userMessage]);
+    if (!customPrompt) setInputValue('');
     setIsLoading(true);
 
-    try {
-      // --- REAL GPS HOSPITAL LOCATOR ---
-      if (isHospitalQuery(textToSend)) {
-        let locationToUse = userLocation;
-
-        // Try to get fresh location if we don't have it yet
-        if (!locationToUse && navigator.geolocation) {
-          locationToUse = await new Promise((resolve) => {
-            navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                setUserLocation(loc);
-                resolve(loc);
-              },
-              () => resolve(null),
-              { timeout: 8000 }
-            );
-          });
-        }
-
-        if (locationToUse) {
-          try {
-            const hospitals = await fetchNearbyHospitals(locationToUse.lat, locationToUse.lng);
-            const hospitalMessage: ChatMessage = {
+    const attemptRequest = async (retryCount = 0): Promise<void> => {
+      try {
+        // --- GPS HOSPITAL LOCATOR ---
+        if (isHospitalQuery(textToSend)) {
+          let locationToUse = userLocation;
+          if (!locationToUse && navigator.geolocation) {
+            locationToUse = await new Promise(resolve => {
+              navigator.geolocation.getCurrentPosition(
+                pos => { const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude }; setUserLocation(loc); resolve(loc); },
+                () => resolve(null),
+                { timeout: 8000 }
+              );
+            });
+          }
+          if (locationToUse) {
+            try {
+              const hospitals = await fetchNearbyHospitals(locationToUse.lat, locationToUse.lng);
+              setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: formatHospitalResults(hospitals),
+                timestamp: new Date().toISOString(),
+              }]);
+              setIsLoading(false);
+              return;
+            } catch (err) {
+              console.warn('[Hospital Locator] API failed, falling back to AI', err);
+            }
+          } else {
+            setMessages(prev => [...prev, {
               role: 'assistant',
-              content: formatHospitalResults(hospitals),
+              content: `📍 **Location Access Required**\n\nTo find hospitals near you, please:\n1. Tap **Enable Location** in the sidebar Setup panel\n2. Or type your city (e.g. *"Find hospitals in Ikeja, Lagos"*)\n\nFor emergencies: **112** or **767**`,
               timestamp: new Date().toISOString(),
-            };
-            setMessages((prev) => [...prev, hospitalMessage]);
+            }]);
             setIsLoading(false);
             return;
-          } catch (err) {
-            console.warn('[Hospital Locator] Overpass API failed, falling back to AI', err);
           }
-        } else {
-          // No location permission — tell user and fall through to AI
-          const noLocMessage: ChatMessage = {
-            role: 'assistant',
-            content: `📍 **Location Access Required**\n\nTo find hospitals near you, I need access to your device's location. Please:\n1. Allow location access when your browser prompts you\n2. Or manually tell me your city/area (e.g. *"Find hospitals in Ikeja, Lagos"*)\n\nAlternatively, call the national emergency line: **112** or **767** for immediate dispatch.`,
-            timestamp: new Date().toISOString(),
-          };
-          setMessages((prev) => [...prev, noLocMessage]);
-          setIsLoading(false);
-          return;
         }
+        // --- END HOSPITAL LOCATOR ---
+
+        const response = await askTriage({
+          prompt: userMessage.content,
+          sessionId: sessionId || undefined,
+          conversationHistory: messages,
+          location: userLocation || undefined,
+          mode: chatMode,
+        });
+
+        if (response.success && response.message) {
+          if (response.sessionId) setSessionId(response.sessionId);
+          let assistantMessage = response.message;
+          if (parsedReminder) {
+            assistantMessage = {
+              ...assistantMessage,
+              content: `✅ Scheduled medication reminder for **${parsedReminder.medication}** (${parsedReminder.dosage}) at **${parsedReminder.time}** daily.\n\n${assistantMessage.content}`,
+            };
+          }
+          setMessages(prev => [...prev, assistantMessage]);
+          loadHistorySessions();
+        }
+      } catch (error: any) {
+        if (retryCount === 0) {
+          // Silent retry once after 1.5s
+          await new Promise(r => setTimeout(r, 1500));
+          return attemptRequest(1);
+        }
+        console.error('Triage Request Error:', error);
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `⚠️ **Connection Issue**\n\nWe couldn't reach the triage service. This is usually temporary.\n\n**What to do:**\n- Tap the **↺ Retry** button below\n- Check your internet connection\n- For emergencies, call **112** immediately`,
+          urgency: 'EMERGENCY',
+          timestamp: new Date().toISOString(),
+          isRetryable: true,
+        } as any]);
+      } finally {
+        setIsLoading(false);
       }
-      // --- END HOSPITAL LOCATOR ---
+    };
 
-      const response = await askTriage({
-        prompt: userMessage.content,
-        sessionId: sessionId || undefined,
-        conversationHistory: messages,
-        location: userLocation || undefined,
-      });
-
-      if (response.success && response.message) {
-        if (response.sessionId) {
-          setSessionId(response.sessionId);
-        }
-
-        let assistantMessage = response.message;
-
-        // If a reminder was scheduled from chat, prepend confirmation
-        if (parsedReminder) {
-          assistantMessage = {
-            ...assistantMessage,
-            content: `Scheduled medication reminder for ${parsedReminder.medication} (${parsedReminder.dosage}) at ${parsedReminder.time} daily.\n\n${assistantMessage.content}`,
-          };
-        }
-
-        setMessages((prev) => [...prev, assistantMessage]);
-        loadHistorySessions();
-      }
-    } catch (error: any) {
-      console.error('Triage Request Error:', error);
-      const errorMessage: ChatMessage = {
-        role: 'assistant',
-        content: `Clinical Notice: We encountered an error connecting to the medical triage service. Please try submitting your query again. In case of an acute emergency, immediately call 112 / 767.`,
-        urgency: 'EMERGENCY',
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    await attemptRequest();
   };
 
   const handleToggleVoice = () => {
@@ -437,19 +467,29 @@ export const Chat: React.FC = () => {
     );
   };
 
-  const activeRemindersCount = reminders.filter((r) => r.isActive).length;
+  const activeRemindersCount = reminders.filter(r => r.isActive).length;
+  const setupNeeded = !locationGranted || !notifGranted;
 
   return (
+    // CSS Grid outer shell — the ONLY reliable cross-browser approach
+    // grid-cols: [sidebar] [main]   grid-rows: [full height]
     <div
-      className="fixed inset-0 bg-slate-100 font-sans text-slate-900"
-      style={{ overscrollBehavior: 'none' }}
+      className="fixed inset-0 font-sans text-slate-900"
+      style={{ overscrollBehavior: 'none', touchAction: 'none' }}
     >
-      {/* 1. COLLAPSIBLE SIDEBAR DRAWER (Overlay on Mobile & Tablet, Static on Large Desktops) */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 sm:w-80 lg:w-72 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out lg:static ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-72'
-        }`}
+      {/* Inner grid: sidebar + main side by side */}
+      <div
+        className="h-full w-full flex bg-slate-100"
+        style={{ height: '100dvh' }}
       >
+      {/* 1. SIDEBAR */}
+      <aside
+        className={`flex-shrink-0 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
+          sidebarOpen ? 'w-72' : 'w-0'
+        }`}
+        style={{ height: '100dvh' }}
+      >
+        <div className="w-72 h-full flex flex-col overflow-hidden">
         {/* Brand Header */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2.5">
@@ -633,18 +673,22 @@ export const Chat: React.FC = () => {
             </Link>
           )}
         </div>
+        </div>{/* end w-72 inner */}
       </aside>
 
-      {/* Backdrop for Mobile & Tablet Sidebar */}
+      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-slate-900/60 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-30 bg-slate-900/60 lg:hidden"
         />
       )}
 
-      {/* 2. MAIN CHAT PANEL — uses absolute positioning for bulletproof mobile layout */}
-      <main className="absolute inset-0 flex flex-col bg-slate-50 overflow-hidden">
+      {/* 2. MAIN PANEL — flex-1 flex-col, fills remaining width */}
+      <main
+        className="flex-1 flex flex-col bg-slate-50 overflow-hidden"
+        style={{ height: '100dvh', minWidth: 0 }}
+      >
         {/* Top Header Bar (Optimized for Mobile, Tablet & Desktop) */}
         <header className="h-14 bg-white border-b border-slate-300 px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0 z-10">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -748,11 +792,11 @@ export const Chat: React.FC = () => {
           </div>
         </div>
 
-        {/* Scrollable Conversation Stream — takes remaining space */}
+        {/* Scrollable Conversation Stream — flex-1 takes all remaining space */}
         <div
           ref={chatScrollContainerRef}
-          className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4"
-          style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4"
+          style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}
         >
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto space-y-6 py-6 px-2">
@@ -764,15 +808,11 @@ export const Chat: React.FC = () => {
                   {user ? `Hello ${user.name}, how can DokitaAI assist you today?` : 'How can DokitaAI assist you today?'}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
-                  Type or speak symptoms in English, Pidgin, Yoruba, Hausa, or Igbo—check drug safety, set medication reminders, or find nearby 24/7 hospitals.
+                  Type or speak symptoms in English, Pidgin, Yoruba, Hausa, or Igbo — check drug safety, set medication reminders, or find nearby 24/7 hospitals.
                 </p>
               </div>
-
-              {/* Starter Scenarios */}
               <div className="space-y-2 w-full pt-1">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                  Tap to start a clinical scenario or safety check:
-                </p>
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Tap to start:</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {symptomSuggestions.map((item, i) => (
                     <button
@@ -791,6 +831,7 @@ export const Chat: React.FC = () => {
             messages.map((msg, index) => {
               const isUser = msg.role === 'user';
               const isSpeakingThis = speakingIndex === index;
+              const isRetryable = (msg as any).isRetryable;
 
               return (
                 <div
@@ -810,67 +851,53 @@ export const Chat: React.FC = () => {
                         : 'bg-white border-slate-300 rounded-tl-xs'
                     }`}
                   >
-                    {/* Assistant Header */}
                     {!isUser && (
                       <div className="flex items-center justify-between gap-3 pb-2 mb-2 border-b border-slate-100 text-slate-400 text-[10px]">
                         <span className="font-semibold text-slate-600">DokitaAI Clinical Assistant</span>
                         <div className="flex items-center gap-2">
-                          {/* Audio Read-Aloud Button */}
                           {isTtsSupported && (
                             <button
                               onClick={() => speak(msg.content, index)}
                               className={`p-1 rounded transition-colors cursor-pointer flex items-center gap-1 ${
-                                isSpeakingThis
-                                  ? 'bg-teal-100 text-teal-800 font-bold'
-                                  : 'text-slate-400 hover:text-teal-800 hover:bg-slate-100'
+                                isSpeakingThis ? 'bg-teal-100 text-teal-800 font-bold' : 'text-slate-400 hover:text-teal-800 hover:bg-slate-100'
                               }`}
-                              title={isSpeakingThis ? 'Stop Audio Readout' : 'Listen to Audio Readout'}
+                              title={isSpeakingThis ? 'Stop' : 'Listen'}
                             >
-                              {isSpeakingThis ? (
-                                <>
-                                  <Square className="w-3.5 h-3.5 fill-teal-800" />
-                                  <span className="text-[10px]">Stop</span>
-                                </>
-                              ) : (
-                                <Volume2 className="w-3.5 h-3.5" />
-                              )}
+                              {isSpeakingThis ? <Square className="w-3.5 h-3.5 fill-teal-800" /> : <Volume2 className="w-3.5 h-3.5" />}
                             </button>
                           )}
-
-                          {/* Copy Message Button */}
                           <button
                             onClick={() => handleCopyMessage(msg.content, index)}
                             className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                            title="Copy response"
                           >
-                            {copiedIndex === index ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
-                            ) : (
-                              <Copy className="w-3.5 h-3.5" />
-                            )}
+                            {copiedIndex === index ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
                           <span className="font-mono">
-                            {new Date(msg.timestamp || Date.now()).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
                     )}
 
-                    {/* Message Content */}
                     {isUser ? (
-                      <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
+                      <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                     ) : (
                       renderFormattedContent(msg.content)
                     )}
 
-                    {/* Collapsible Citations Card */}
                     {!isUser && msg.sources && msg.sources.length > 0 && (
                       <CitationCard sources={msg.sources} />
+                    )}
+
+                    {/* Retry button on error messages */}
+                    {isRetryable && (
+                      <button
+                        onClick={() => handleSendMessage(messages[index - 1]?.content)}
+                        className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold transition-colors cursor-pointer"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        Retry
+                      </button>
                     )}
                   </div>
 
@@ -884,17 +911,26 @@ export const Chat: React.FC = () => {
             })
           )}
 
-          {/* Loading Indicator */}
+          {/* Loading — AI Progress Steps */}
           {isLoading && (
             <div className="flex gap-3 max-w-3xl lg:max-w-4xl mx-auto justify-start">
               <div className="w-8 h-8 rounded-xl bg-teal-700 text-white flex items-center justify-center shrink-0 mt-1">
                 <Bot className="w-4 h-4" />
               </div>
-              <div className="bg-white border border-slate-300 rounded-2xl rounded-tl-xs p-4 flex items-center gap-3">
-                <Loader2 className="w-4 h-4 text-teal-700 animate-spin" />
-                <span className="text-xs font-medium text-slate-600">
-                  Synthesizing clinical assessment...
-                </span>
+              <div className="bg-white border border-slate-300 rounded-2xl rounded-tl-xs p-4 space-y-2 min-w-[220px]">
+                {PROGRESS_STEPS.map((step, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-center gap-2 text-xs transition-all duration-500 ${
+                      i === progressStep ? 'text-teal-700 font-semibold opacity-100' : 'text-slate-400 opacity-40'
+                    }`}
+                  >
+                    {i === progressStep && <Loader2 className="w-3 h-3 animate-spin shrink-0" />}
+                    {i < progressStep && <Check className="w-3 h-3 text-emerald-500 shrink-0" />}
+                    {i > progressStep && <div className="w-3 h-3 shrink-0" />}
+                    <span>{step}</span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -928,11 +964,37 @@ export const Chat: React.FC = () => {
               </div>
             )}
 
+            {/* Mode Toggle */}
+            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200 w-fit">
+              <button
+                type="button"
+                onClick={() => setChatMode('ai')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  chatMode === 'ai'
+                    ? 'bg-white text-teal-700 shadow-sm border border-slate-200'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Stethoscope className="w-3.5 h-3.5" />
+                AI Triage
+              </button>
+              <button
+                type="button"
+                onClick={() => setChatMode('websearch')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  chatMode === 'websearch'
+                    ? 'bg-white text-blue-700 shadow-sm border border-slate-200'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5" />
+                Web Search
+              </button>
+            </div>
+
             {/* Quick Suggestion Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              <span className="text-[10px] font-semibold text-slate-400 shrink-0 mr-1 uppercase">
-                Quick Add:
-              </span>
+              <span className="text-[10px] font-semibold text-slate-400 shrink-0 mr-1 uppercase">Quick Add:</span>
               {symptomSuggestions.slice(0, 4).map((item, idx) => (
                 <button
                   key={idx}
@@ -948,24 +1010,18 @@ export const Chat: React.FC = () => {
 
             {/* Prompt Input Form */}
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage();
-              }}
+              onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
               className="relative flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-700/20 focus-within:border-teal-700 transition-colors"
             >
-              {/* Voice Speech-to-Text Button */}
               {isSpeechSupported && (
                 <button
                   type="button"
                   onClick={handleToggleVoice}
                   disabled={isLoading}
                   className={`p-2.5 rounded-xl transition-colors cursor-pointer ${
-                    isListening
-                      ? 'bg-red-500 text-white'
-                      : 'text-slate-500 hover:text-teal-800 hover:bg-teal-50'
+                    isListening ? 'bg-red-500 text-white' : 'text-slate-500 hover:text-teal-800 hover:bg-teal-50'
                   }`}
-                  title={isListening ? 'Stop listening' : 'Voice Dictation (Speak symptoms aloud)'}
+                  title={isListening ? 'Stop listening' : 'Voice input'}
                 >
                   {isListening ? <MicOff className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
                 </button>
@@ -977,9 +1033,11 @@ export const Chat: React.FC = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isLoading}
                 placeholder={
-                  isListening
-                    ? 'Listening... (Speak now)'
-                    : "Ask medical questions, check drug safety, or set medication reminders..."
+                  chatMode === 'websearch'
+                    ? 'Search the web for medical info with citations...'
+                    : isListening
+                    ? 'Listening... (speak now)'
+                    : 'Ask symptoms, drug safety, or hospital locations...'
                 }
                 className="w-full px-2 py-2 text-xs sm:text-sm bg-transparent border-none focus:outline-none disabled:opacity-50 text-slate-800"
               />
@@ -988,7 +1046,6 @@ export const Chat: React.FC = () => {
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}
                 className="p-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white transition-colors active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
-                title="Send Message"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -997,7 +1054,9 @@ export const Chat: React.FC = () => {
         </div>
       </main>
 
-      {/* Medication Reminders Interactive Modal */}
+      </div>{/* end inner flex */}
+
+      {/* Medication Reminders Modal */}
       <MedicationReminderModal
         isOpen={reminderModalOpen}
         onClose={() => setReminderModalOpen(false)}

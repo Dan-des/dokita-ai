@@ -6,6 +6,7 @@ export const askTriage = async (data: {
   sessionId?: string;
   conversationHistory?: ChatMessage[];
   location?: { lat: number; lng: number };
+  mode?: 'ai' | 'websearch';
 }): Promise<{
   success: boolean;
   sessionId: string;
