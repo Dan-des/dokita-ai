@@ -591,8 +591,8 @@ export const Chat: React.FC = () => {
     <div className="h-full w-full flex bg-slate-100 font-sans text-slate-900 overflow-hidden relative min-h-0">
       {/* 1. SIDEBAR */}
       <aside
-        className={`flex-shrink-0 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col transition-all duration-300 ease-in-out overflow-hidden z-40 ${
-          sidebarOpen ? 'w-72' : 'w-0'
+        className={`fixed lg:relative top-0 bottom-0 left-0 flex-shrink-0 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col transition-all duration-300 ease-in-out z-40 h-full overflow-hidden ${
+          sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0 lg:w-0'
         }`}
       >
         <div className="w-72 h-full flex flex-col overflow-hidden">
