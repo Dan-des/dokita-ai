@@ -1090,7 +1090,7 @@ export const Chat: React.FC = () => {
         </div>
 
         {/* Pinned Bottom Input Form */}
-        <div className="bg-white border-t border-slate-300 p-3 sm:p-4 md:px-8 shrink-0">
+        <div className="bg-white border-t border-slate-300 p-2.5 sm:p-4 md:px-8 shrink-0 z-20 shadow-md pb-[max(0.625rem,env(safe-area-inset-bottom))]">
           <div className="max-w-3xl lg:max-w-4xl mx-auto space-y-2">
             {/* Live Listening Status Banner */}
             {isListening && (

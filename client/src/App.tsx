@@ -26,14 +26,28 @@ const AppContent: React.FC = () => {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const isChatRoute = location.pathname === '/chat';
 
-  // Manage body overflow for chat vs standard pages
+  // Real-time Visual Viewport binding (tracks exact height above Samsung Browser & Chrome bottom bars)
   React.useEffect(() => {
+    const updateViewportHeight = () => {
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty('--visual-viewport-height', `${vh}px`);
+    };
+
+    updateViewportHeight();
+    window.visualViewport?.addEventListener('resize', updateViewportHeight);
+    window.visualViewport?.addEventListener('scroll', updateViewportHeight);
+    window.addEventListener('resize', updateViewportHeight);
+
     if (isChatRoute) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
+
     return () => {
+      window.visualViewport?.removeEventListener('resize', updateViewportHeight);
+      window.visualViewport?.removeEventListener('scroll', updateViewportHeight);
+      window.removeEventListener('resize', updateViewportHeight);
       document.body.style.overflow = '';
     };
   }, [isChatRoute]);
@@ -41,8 +55,11 @@ const AppContent: React.FC = () => {
   return (
     <div
       className={`selection:bg-teal-700 selection:text-white font-sans ${
-        isChatRoute ? 'fixed inset-0 flex flex-col overflow-hidden bg-slate-50 text-slate-900 z-0' : 'min-h-screen flex flex-col bg-slate-50 text-slate-900'
+        isChatRoute
+          ? 'fixed inset-0 flex flex-col overflow-hidden bg-slate-50 text-slate-900 z-0'
+          : 'min-h-screen flex flex-col bg-slate-50 text-slate-900'
       }`}
+      style={isChatRoute ? { height: 'var(--visual-viewport-height, 100dvh)' } : undefined}
     >
       <PageTitle />
 
