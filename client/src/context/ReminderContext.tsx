@@ -167,6 +167,12 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [addReminder]
   );
 
+  // Stable ref for reminders to keep checkSchedule interval static without teardown cycles
+  const remindersRef = useRef(reminders);
+  useEffect(() => {
+    remindersRef.current = reminders;
+  }, [reminders]);
+
   // Background timer checking every 30 seconds for scheduled triggers
   useEffect(() => {
     const checkSchedule = () => {
@@ -176,7 +182,7 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const currentTimeString = `${currentHours}:${currentMinutes}`;
       const todayDateString = now.toISOString().split('T')[0];
 
-      reminders.forEach((r) => {
+      remindersRef.current.forEach((r) => {
         if (!r.isActive) return;
 
         if (r.time === currentTimeString && r.lastTriggeredDate !== todayDateString) {
@@ -192,7 +198,7 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             try {
               new Notification(`⏰ DokitaAI Medication Reminder: ${r.medication}`, {
                 body: `It's time to take your ${r.medication} (${r.dosage}). ${r.instructions || 'Stay healthy!'}`,
-                icon: '/favicon.ico',
+                icon: '/favicon.svg',
               });
             } catch (e) {
               console.error('[Notification Error]', e);
@@ -204,7 +210,7 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const interval = setInterval(checkSchedule, 30000);
     return () => clearInterval(interval);
-  }, [reminders]);
+  }, []);
 
   return (
     <ReminderContext.Provider

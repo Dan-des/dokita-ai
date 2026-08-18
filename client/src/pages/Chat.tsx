@@ -207,10 +207,12 @@ export const Chat: React.FC = () => {
   };
   useEffect(() => { scrollToBottom(); }, [messages, isLoading]);
 
-  // Handle initial prompt from navigation state
+  // Handle initial prompt from navigation state (guarded by ref to prevent duplicate triggers on reload)
+  const initialPromptProcessed = useRef(false);
   useEffect(() => {
     const state = location.state as { initialPrompt?: string } | null;
-    if (state?.initialPrompt) {
+    if (state?.initialPrompt && !initialPromptProcessed.current) {
+      initialPromptProcessed.current = true;
       handleSendMessage(state.initialPrompt);
       window.history.replaceState({}, document.title);
     }
