@@ -174,29 +174,44 @@ const queryGooglePlacesHospitals = async (lat, lng, radiusMeters = 25000, apiKey
     const response = await axios.get(url, { timeout: 8000 });
     const results = response.data?.results || [];
 
-    return results.map((place) => {
-      const itemLat = place.geometry?.location?.lat;
-      const itemLng = place.geometry?.location?.lng;
-      const distance = calculateDistanceKm(lat, lng, itemLat, itemLng);
+    // Query details in parallel for the top 5 results to retrieve actual phone numbers
+    return Promise.all(
+      results.slice(0, 5).map(async (place) => {
+        const itemLat = place.geometry?.location?.lat;
+        const itemLng = place.geometry?.location?.lng;
+        const distance = calculateDistanceKm(lat, lng, itemLat, itemLng);
 
-      return {
-        _id: `gplace_${place.place_id}`,
-        name: place.name,
-        address: place.vicinity || 'Local Area',
-        city: 'Local Area',
-        state: 'Emergency Zone',
-        phone: '+234 112 / 767',
-        is24Hours: place.opening_hours?.open_now !== false,
-        latitude: itemLat,
-        longitude: itemLng,
-        distanceKm: distance,
-        source: 'Live Google Places API',
-        rating: place.rating,
-        googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-          place.name
-        )}&query_place_id=${place.place_id}`,
-      };
-    });
+        let phone = '+234 112 / 767';
+        try {
+          const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=formatted_phone_number,international_phone_number&key=${apiKey}`;
+          const detailsResponse = await axios.get(detailsUrl, { timeout: 3000 });
+          const details = detailsResponse.data?.result;
+          if (details) {
+            phone = details.formatted_phone_number || details.international_phone_number || phone;
+          }
+        } catch (detailErr) {
+          console.warn(`[Google Places Details] Failed to fetch details for ${place.place_id}: ${detailErr.message}`);
+        }
+
+        return {
+          _id: `gplace_${place.place_id}`,
+          name: place.name,
+          address: place.vicinity || 'Local Area',
+          city: 'Local Area',
+          state: 'Emergency Zone',
+          phone: phone,
+          is24Hours: place.opening_hours?.open_now !== false,
+          latitude: itemLat,
+          longitude: itemLng,
+          distanceKm: distance,
+          source: 'Live Google Places API',
+          rating: place.rating,
+          googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            place.name
+          )}&query_place_id=${place.place_id}`,
+        };
+      })
+    );
   } catch (err) {
     console.warn(`[Google Places] Live query notice: ${err.message}`);
     return [];
