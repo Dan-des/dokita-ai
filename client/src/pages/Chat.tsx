@@ -50,7 +50,8 @@ import {
   RefreshCw,
   Stethoscope,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  Settings
 } from 'lucide-react';
 
 // AI progress steps shown while loading — one at a time, no emojis
@@ -333,7 +334,7 @@ export const Chat: React.FC = () => {
 
             setMessages(prev => [...prev, {
               role: 'assistant',
-              content: `📍 **Location Access Required**\n\nTo find hospitals near you, please:\n1. Tap **Enable Location** in the sidebar Setup panel\n2. Or type your city (e.g. *"Find hospitals in Ikeja, Lagos"*)\n\nFor emergencies: **112** or **767**`,
+              content: `**Location Access Required**\n\nTo find hospitals near you, please:\n1. Tap **Enable Location** in the sidebar Setup panel\n2. Or type your city (e.g. *"Find hospitals in Ikeja, Lagos"*)\n\nFor emergencies: **112** or **767**`,
               timestamp: new Date().toISOString(),
             }]);
             setIsLoading(false);
@@ -676,16 +677,17 @@ export const Chat: React.FC = () => {
           </button>
         </div>
 
-        {/* ⚙️ Setup Panel — disappears once both permissions granted */}
+        {/* Setup Panel — disappears once both permissions granted */}
         {setupNeeded && (
           <div className="mx-3 mb-2 p-3 rounded-xl bg-slate-800 border border-slate-700 space-y-2">
             <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <span>⚙️</span> Quick Setup
+              <Settings className="w-3 h-3 text-slate-300 shrink-0" />
+              <span>Quick Setup</span>
             </p>
             {!locationGranted && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">📍</span>
+                  <MapPin className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                   <div>
                     <p className="text-[11px] font-semibold text-slate-200">Location Access</p>
                     <p className="text-[10px] text-slate-500">For hospital finder</p>
@@ -702,7 +704,7 @@ export const Chat: React.FC = () => {
             {!notifGranted && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">🔔</span>
+                  <Bell className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                   <div>
                     <p className="text-[11px] font-semibold text-slate-200">Notifications</p>
                     <p className="text-[10px] text-slate-500">Medication reminders</p>
@@ -1323,13 +1325,13 @@ export const Chat: React.FC = () => {
         onClose={() => setReminderModalOpen(false)}
       />
 
-      {/* 🚀 First-time Permission Onboarding Modal */}
+      {/* First-time Permission Onboarding Modal */}
       {showPermissionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-xs">
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-6 animate-in zoom-in-95 duration-200">
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center mx-auto text-2xl font-bold">
-                🚀
+              <div className="w-12 h-12 rounded-2xl bg-teal-700 text-white flex items-center justify-center mx-auto shadow-md">
+                <Activity className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">Welcome to DokitaAI!</h3>
               <p className="text-xs text-slate-500 max-w-xs mx-auto">
@@ -1337,12 +1339,12 @@ export const Chat: React.FC = () => {
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* 1. Location */}
               <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg">
-                    📍
+                  <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                    <MapPin className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-900 leading-tight">Nearby Hospital Locator</p>
@@ -1364,8 +1366,8 @@ export const Chat: React.FC = () => {
               {/* 2. Notifications */}
               <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-lg">
-                    🔔
+                  <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                    <Bell className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-900 leading-tight">Medication Reminders</p>
@@ -1387,8 +1389,8 @@ export const Chat: React.FC = () => {
               {/* 3. Microphone */}
               <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center text-lg">
-                    🎙️
+                  <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
+                    <Mic className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-900 leading-tight">Voice Consultations</p>

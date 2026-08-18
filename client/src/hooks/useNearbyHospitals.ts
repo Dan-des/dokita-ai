@@ -84,26 +84,26 @@ export function formatHospitalResults(hospitals: NearbyHospital[]): string {
   }
 
   const lines: string[] = [
-    `📍 **Hospitals & Clinics Near You** (sorted by distance)\n`,
+    `**Hospitals & Clinics Near You** (sorted by distance)\n`,
   ];
 
   hospitals.slice(0, 8).forEach((h, i) => {
-    const emergencyTag = h.is24Hours ? ' 🚨 **24/7**' : '';
+    const emergencyTag = h.is24Hours ? ' **[24/7]**' : '';
     const distStr = h.distanceKm != null ? `${h.distanceKm}km away` : 'nearby';
     const ratingStr = h.rating ? ` • ⭐ ${h.rating}` : '';
     const sourceStr = h.source?.includes('Google') ? ' · *Google*' : ' · *OpenStreetMap*';
-    const phoneStr = h.phone && !h.phone.includes('112') ? `\n   📞 ${h.phone}` : '';
+    const phoneStr = h.phone && !h.phone.includes('112') ? `\n   Phone: ${h.phone}` : '';
 
     lines.push(
       `**${i + 1}. ${h.name}**${emergencyTag}\n` +
-      `   📍 ${h.address}, ${h.city}${ratingStr}${sourceStr}\n` +
-      `   🚗 ${distStr}${phoneStr}\n` +
+      `   Address: ${h.address}, ${h.city}${ratingStr}${sourceStr}\n` +
+      `   Distance: ${distStr}${phoneStr}\n` +
       `   [Get Directions ↗](${h.googleMapsUrl})`
     );
   });
 
   lines.push(
-    `\n---\n⚠️ *Always call ahead to confirm availability. Life-threatening emergency? Call **112** immediately.*`
+    `\n---\n*Always call ahead to confirm availability. Life-threatening emergency? Call **112** immediately.*`
   );
 
   return lines.join('\n');
