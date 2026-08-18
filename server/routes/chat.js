@@ -12,7 +12,7 @@ const { generateMedicalTriage } = require('../services/aiService');
  */
 router.post('/ask', chatLimiter, optionalToken, async (req, res) => {
   try {
-    const { prompt, sessionId, conversationHistory, location } = req.body;
+    const { prompt, sessionId, conversationHistory, location, mode } = req.body;
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return res.status(400).json({
@@ -59,7 +59,7 @@ router.post('/ask', chatLimiter, optionalToken, async (req, res) => {
     });
 
     // Generate clinical triage response (with optional GPS / location context)
-    const triageResult = await generateMedicalTriage(trimmedPrompt, pastMessages, location);
+    const triageResult = await generateMedicalTriage(trimmedPrompt, pastMessages, location, mode || 'ai');
 
     // Append assistant triage response
     session.messages.push({

@@ -249,6 +249,89 @@ const callGeminiAPI = async (prompt, history, apiKey, hospitalContext = '') => {
 };
 
 /**
+ * Web Search Mode — Uses Gemini's built-in Google Search grounding tool
+ * Returns cited sources extracted from the grounding metadata
+ */
+const callGeminiWebSearch = async (prompt, history, apiKey) => {
+  const formattedHistory = formatConversationHistory(history);
+  const contents = [
+    ...formattedHistory,
+    { role: 'user', parts: [{ text: prompt }] },
+  ];
+
+  const WEB_SEARCH_INSTRUCTION = `You are DokitaAI, a helpful medical and health research assistant. 
+The user wants REAL web search results, not just AI knowledge. Search the internet for the most accurate, 
+up-to-date information on their query. Present findings clearly with numbered sources cited inline. 
+Always include the actual URLs of sources you found. Format citations as: [Source N] at the end of each relevant claim.
+Be comprehensive and mention multiple perspectives if they exist. Include publication dates where available.
+${STATUTORY_MEDICAL_DISCLAIMER}`;
+
+  let lastError = null;
+  // Only use models that support googleSearch grounding (gemini-1.5 and newer)
+  const groundingModels = [
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-8b',
+  ];
+
+  for (const model of groundingModels) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    try {
+      const response = await axios.post(
+        url,
+        {
+          systemInstruction: { parts: [{ text: WEB_SEARCH_INSTRUCTION }] },
+          contents,
+          tools: [{ googleSearch: {} }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
+        },
+        { headers: { 'Content-Type': 'application/json' }, timeout: 30000 }
+      );
+
+      let text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const groundingMeta = response.data?.candidates?.[0]?.groundingMetadata;
+
+      // Extract real web sources from grounding metadata
+      const webSources = [];
+      if (groundingMeta?.groundingChunks) {
+        groundingMeta.groundingChunks.forEach((chunk, i) => {
+          if (chunk.web?.uri) {
+            webSources.push({
+              title: chunk.web.title || `Web Source ${i + 1}`,
+              url: chunk.web.uri,
+            });
+          }
+        });
+      }
+
+      // Append source list to response if not already included
+      if (webSources.length > 0 && text.trim()) {
+        const sourceList = webSources
+          .map((s, i) => `[${i + 1}] ${s.title} — ${s.url}`)
+          .join('\n');
+        if (!text.includes('http')) {
+          text += `\n\n**Sources Found:**\n${sourceList}`;
+        }
+      }
+
+      if (text.trim()) {
+        return {
+          content: text,
+          sources: webSources.length > 0 ? webSources : selectRelevantSources(prompt),
+          urgency: detectUrgency(text + ' ' + prompt),
+          modelUsed: model,
+        };
+      }
+    } catch (err) {
+      lastError = err;
+      console.warn(`[WebSearch] Model "${model}" failed: ${err.response?.status || err.message}`);
+    }
+  }
+
+  throw lastError || new Error('Gemini web search grounding failed');
+};
+
+/**
  * Call OpenAI API dynamically
  */
 const callOpenAIAPI = async (prompt, history, apiKey, hospitalContext = '') => {
@@ -302,9 +385,19 @@ const callOpenAIAPI = async (prompt, history, apiKey, hospitalContext = '') => {
 /**
  * Master triage dispatcher with Hybrid Multi-Provider Fallback & Conversational Hospital Discovery
  */
-const generateMedicalTriage = async (prompt, history = [], location = null) => {
+const generateMedicalTriage = async (prompt, history = [], location = null, mode = 'ai') => {
   const geminiKey = process.env.GEMINI_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
+
+  // Web Search Mode: use Gemini grounding with real Google Search
+  if (mode === 'websearch' && geminiKey) {
+    try {
+      return await callGeminiWebSearch(prompt, history, geminiKey);
+    } catch (wsErr) {
+      console.warn('[WebSearch] Grounding failed, falling back to AI triage:', wsErr.message);
+      // Fall through to standard AI triage
+    }
+  }
 
   let hospitalContext = '';
   if (isHospitalQuery(prompt)) {

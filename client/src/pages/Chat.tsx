@@ -544,6 +544,49 @@ export const Chat: React.FC = () => {
           </button>
         </div>
 
+        {/* ⚙️ Setup Panel — disappears once both permissions granted */}
+        {setupNeeded && (
+          <div className="mx-3 mb-2 p-3 rounded-xl bg-slate-800 border border-slate-700 space-y-2">
+            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <span>⚙️</span> Quick Setup
+            </p>
+            {!locationGranted && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📍</span>
+                  <div>
+                    <p className="text-[11px] font-semibold text-slate-200">Location Access</p>
+                    <p className="text-[10px] text-slate-500">For hospital finder</p>
+                  </div>
+                </div>
+                <button
+                  onClick={requestLocation}
+                  className="px-2.5 py-1 rounded-lg bg-teal-700 hover:bg-teal-600 text-white text-[10px] font-bold transition-colors cursor-pointer shrink-0"
+                >
+                  Enable
+                </button>
+              </div>
+            )}
+            {!notifGranted && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🔔</span>
+                  <div>
+                    <p className="text-[11px] font-semibold text-slate-200">Notifications</p>
+                    <p className="text-[10px] text-slate-500">Medication reminders</p>
+                  </div>
+                </div>
+                <button
+                  onClick={requestNotifications}
+                  className="px-2.5 py-1 rounded-lg bg-teal-700 hover:bg-teal-600 text-white text-[10px] font-bold transition-colors cursor-pointer shrink-0"
+                >
+                  Enable
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Chat History Session List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
           <div className="flex items-center justify-between px-2 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
