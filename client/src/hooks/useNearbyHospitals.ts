@@ -52,6 +52,30 @@ export async function fetchNearbyHospitals(
 }
 
 /**
+ * Search the hospital directory using a text query (city, name, search term)
+ */
+export async function searchHospitalsByQuery(
+  query: string
+): Promise<NearbyHospital[]> {
+  const token = safeStorage.getItem('dokita_token');
+  const url = `${API_BASE}/hospitals?search=${encodeURIComponent(query)}`;
+
+  const response = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Hospital API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (!data.success) throw new Error(data.message || 'Hospital lookup failed');
+
+  return data.hospitals as NearbyHospital[];
+}
+
+/**
  * Format hospital results into a clean chat-readable message
  */
 export function formatHospitalResults(hospitals: NearbyHospital[]): string {

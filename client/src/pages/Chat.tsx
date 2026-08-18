@@ -15,7 +15,7 @@ import { exportDoctorReport } from '../utils/pdfExport';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useTextToSpeech } from '../hooks/useTextToSpeech';
 import { useReminders } from '../context/ReminderContext';
-import { fetchNearbyHospitals, formatHospitalResults, isHospitalQuery } from '../hooks/useNearbyHospitals';
+import { fetchNearbyHospitals, formatHospitalResults, isHospitalQuery, searchHospitalsByQuery } from '../hooks/useNearbyHospitals';
 import { 
   Send, 
   FileDown, 
@@ -283,6 +283,28 @@ export const Chat: React.FC = () => {
               console.warn('[Hospital Locator] API failed, falling back to AI', err);
             }
           } else {
+            // Check if user specified a text location (e.g. city) instead of generic "near me"
+            const cleanedQuery = textToSend.toLowerCase();
+            const genericTerms = ['near me', 'around me', 'close to me', 'for here', 'my location', 'gps'];
+            const isGeneric = genericTerms.some(term => cleanedQuery.includes(term)) || cleanedQuery.trim() === 'hospital' || cleanedQuery.trim() === 'hospitals';
+
+            if (!isGeneric) {
+              try {
+                const hospitals = await searchHospitalsByQuery(textToSend);
+                if (hospitals && hospitals.length > 0) {
+                  setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: formatHospitalResults(hospitals),
+                    timestamp: new Date().toISOString(),
+                  }]);
+                  setIsLoading(false);
+                  return;
+                }
+              } catch (err) {
+                console.warn('[Hospital Text Search Failed]', err);
+              }
+            }
+
             setMessages(prev => [...prev, {
               role: 'assistant',
               content: `📍 **Location Access Required**\n\nTo find hospitals near you, please:\n1. Tap **Enable Location** in the sidebar Setup panel\n2. Or type your city (e.g. *"Find hospitals in Ikeja, Lagos"*)\n\nFor emergencies: **112** or **767**`,
