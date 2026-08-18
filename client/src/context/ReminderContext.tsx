@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { safeStorage } from '../utils/storage';
 
@@ -169,7 +169,7 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 
   // Stable ref for reminders to keep checkSchedule interval static without teardown cycles
-  const remindersRef = useRef(reminders);
+  const remindersRef = useRef<MedicationReminder[]>(reminders);
   useEffect(() => {
     remindersRef.current = reminders;
   }, [reminders]);
@@ -183,7 +183,7 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const currentTimeString = `${currentHours}:${currentMinutes}`;
       const todayDateString = now.toISOString().split('T')[0];
 
-      remindersRef.current.forEach((r) => {
+      remindersRef.current.forEach((r: MedicationReminder) => {
         if (!r.isActive) return;
 
         if (r.time === currentTimeString && r.lastTriggeredDate !== todayDateString) {
