@@ -90,22 +90,22 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
       <section className="pt-8 md:pt-14 space-y-6 text-center">
 
         {/* Clinical Platform Badge */}
-        <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 text-xs font-semibold ${mounted ? 'anim-fade-down' : 'opacity-0'}`}>
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 text-xs font-semibold">
           <ShieldCheck className="w-3.5 h-3.5 text-teal-700" />
           <span>Clinical AI Telehealth Assistant • Verified Guidelines (WHO / CDC / NHS)</span>
         </div>
 
         <div className="space-y-3 max-w-2xl mx-auto">
-          <h1 className={`text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight ${mounted ? 'anim-fade-up delay-100' : 'opacity-0'}`}>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
             Your 24/7 AI Health Companion &amp; Triage Navigator
           </h1>
-          <p className={`text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl mx-auto ${mounted ? 'anim-fade-up delay-200' : 'opacity-0'}`}>
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl mx-auto">
             Describe symptoms in your own words, find nearby verified emergency hospitals, and export structured clinical reports for doctors.
           </p>
         </div>
 
         {/* Search bar */}
-        <div className={`max-w-2xl mx-auto pt-2 ${mounted ? 'anim-scale-in delay-300' : 'opacity-0'}`}>
+        <div className="max-w-2xl mx-auto pt-2">
           <form
             onSubmit={handleFormSubmit}
             className="p-2 bg-white rounded-2xl border border-slate-300 flex flex-col sm:flex-row items-center gap-2 shadow-sm hover:shadow-md transition-shadow duration-300"
@@ -133,11 +133,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
           <div className="flex flex-wrap items-center justify-center gap-1.5 pt-3">
             <span className="text-[11px] font-semibold text-slate-400 mr-1">Quick Prompts:</span>
             {samplePrompts.map((symptom, idx) => (
-              <div
-                key={idx}
-                className={mounted ? `anim-fade-up` : 'opacity-0'}
-                style={{ animationDelay: `${400 + idx * 80}ms` }}
-              >
+              <div key={idx}>
                 <SymptomChip
                   label={symptom}
                   onClick={() => handleLaunchChat(symptom)}
@@ -151,10 +147,10 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
       {/* 2. CAPABILITY CARDS */}
       <section className="space-y-4 pt-4">
         <div className="text-center space-y-1">
-          <h2 className={`text-lg font-bold text-slate-900 ${mounted ? 'anim-fade-up delay-400' : 'opacity-0'}`}>
+          <h2 className="text-lg font-bold text-slate-900">
             How DokitaAI Helps You
           </h2>
-          <p className={`text-xs text-slate-500 ${mounted ? 'anim-fade-up delay-500' : 'opacity-0'}`}>
+          <p className="text-xs text-slate-500">
             Everything accessible inside one conversational assistant
           </p>
         </div>
@@ -165,11 +161,10 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
             return (
               <div
                 key={i}
-                className={`bg-white p-5 rounded-2xl border border-slate-300 space-y-2.5 flex flex-col justify-between hover-lift cursor-default ${mounted ? 'anim-fade-up' : 'opacity-0'}`}
-                style={{ animationDelay: `${500 + i * 100}ms` }}
+                className="bg-white p-5 rounded-2xl border border-slate-300 space-y-2.5 flex flex-col justify-between hover-lift cursor-default"
               >
                 <div className="space-y-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center anim-float" style={{ animationDelay: `${i * 400}ms` }}>
+                  <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center">
                     <Icon className="w-5 h-5" />
                   </div>
                   <h3 className="text-sm font-bold text-slate-900">{cap.title}</h3>
@@ -182,10 +177,10 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
       </section>
 
       {/* 3. EMERGENCY HOTLINES */}
-      <section className={`bg-white p-6 rounded-2xl border border-slate-300 space-y-4 ${mounted ? 'anim-fade-up delay-700' : 'opacity-0'}`}>
+      <section className="bg-white p-6 rounded-2xl border border-slate-300 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-center justify-center shrink-0 anim-pulse-ring">
+            <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-center justify-center shrink-0">
               <PhoneCall className="w-5 h-5" />
             </div>
             <div>
@@ -227,12 +222,12 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
       </section>
 
       {/* 4. FAQ SECTION */}
-      <section className={`pt-2 ${mounted ? 'anim-fade-up delay-800' : 'opacity-0'}`}>
+      <section className="pt-2">
         <FAQSection />
       </section>
 
       {/* 5. FOOTER ACTIONS */}
-      <div className={`flex flex-wrap items-center justify-center gap-3 pt-4 ${mounted ? 'anim-fade-up delay-800' : 'opacity-0'}`}>
+      <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
         <button
           onClick={() => setShareModalOpen(true)}
           className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer hover:-translate-y-0.5"

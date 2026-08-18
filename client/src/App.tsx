@@ -40,8 +40,8 @@ const AppContent: React.FC = () => {
 
   return (
     <div
-      className={`bg-slate-50 text-slate-900 selection:bg-teal-700 selection:text-white font-sans ${
-        isChatRoute ? 'h-full w-full flex flex-col overflow-hidden relative' : 'min-h-screen flex flex-col'
+      className={`selection:bg-teal-700 selection:text-white font-sans ${
+        isChatRoute ? 'fixed inset-0 flex flex-col overflow-hidden bg-slate-50 text-slate-900 z-0' : 'min-h-screen flex flex-col bg-slate-50 text-slate-900'
       }`}
     >
       <PageTitle />
@@ -49,7 +49,7 @@ const AppContent: React.FC = () => {
       {/* Render Header only on standard site pages (never inside full-screen chat) */}
       {!isChatRoute && <Header onOpenFeedback={() => setFeedbackOpen(true)} />}
 
-      <main className={`flex-1 flex flex-col ${isChatRoute ? 'h-full min-h-0 overflow-hidden' : ''}`}>
+      <main className={`flex-1 flex flex-col ${isChatRoute ? 'min-h-0 overflow-hidden' : ''}`}>
         <Routes>
           <Route path="/" element={<Home onOpenFeedback={() => setFeedbackOpen(true)} />} />
           
