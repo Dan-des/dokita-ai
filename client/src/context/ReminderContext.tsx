@@ -197,10 +197,29 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
           if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
             try {
-              new Notification(`⏰ DokitaAI Medication Reminder: ${r.medication}`, {
+              const title = `⏰ DokitaAI Medication Reminder: ${r.medication}`;
+              const options = {
                 body: `It's time to take your ${r.medication} (${r.dosage}). ${r.instructions || 'Stay healthy!'}`,
-                icon: '/favicon.svg',
-              });
+                icon: '/icon-192.svg',
+                badge: '/favicon.svg',
+                tag: `reminder-${r.id}`,
+                renotify: true,
+                silent: false,
+                vibrate: [200, 100, 200],
+              };
+
+              // Trigger real device-level push notification if PWA Service Worker is active
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready
+                  .then((registration) => {
+                    registration.showNotification(title, options);
+                  })
+                  .catch(() => {
+                    new Notification(title, options);
+                  });
+              } else {
+                new Notification(title, options);
+              }
             } catch (e) {
               console.error('[Notification Error]', e);
             }
