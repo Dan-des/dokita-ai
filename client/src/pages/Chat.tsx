@@ -86,6 +86,12 @@ export const Chat: React.FC = () => {
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const modeDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Custom DokitaAI Pull-to-Refresh Gesture State
+  const [pullY, setPullY] = useState<number>(0);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const touchStartY = useRef<number>(0);
+  const isPullingRef = useRef<boolean>(false);
+
   // Audio Read-Aloud TTS Hook
   const { speak, stop: stopSpeaking, speakingIndex, isSupported: isTtsSupported } = useTextToSpeech();
 
@@ -133,12 +139,6 @@ export const Chat: React.FC = () => {
       }
     }
   };
-
-  // Add chat-page class to body to disable pull-to-refresh, remove on unmount
-  useEffect(() => {
-    document.body.classList.add('chat-page');
-    return () => document.body.classList.remove('chat-page');
-  }, []);
 
   // Close intelligence mode dropdown on click outside or Escape key
   useEffect(() => {
@@ -495,27 +495,65 @@ export const Chat: React.FC = () => {
     );
   };
 
+  // Touch handlers for DokitaAI Branded Pull-to-Refresh
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (chatScrollContainerRef.current && chatScrollContainerRef.current.scrollTop <= 2) {
+      touchStartY.current = e.touches[0].clientY;
+      isPullingRef.current = true;
+    } else {
+      isPullingRef.current = false;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isPullingRef.current || isRefreshing) return;
+    if (chatScrollContainerRef.current && chatScrollContainerRef.current.scrollTop > 2) {
+      isPullingRef.current = false;
+      setPullY(0);
+      return;
+    }
+
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - touchStartY.current;
+
+    if (diff > 0) {
+      // Elastic damping curve (max 75px)
+      const damped = Math.min(diff * 0.45, 75);
+      setPullY(damped);
+    } else {
+      setPullY(0);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isPullingRef.current || isRefreshing) return;
+    isPullingRef.current = false;
+
+    if (pullY >= 48) {
+      setIsRefreshing(true);
+      setPullY(46);
+      setTimeout(async () => {
+        if (isAuthenticated) {
+          await loadHistorySessions();
+        }
+        setIsRefreshing(false);
+        setPullY(0);
+      }, 900);
+    } else {
+      setPullY(0);
+    }
+  };
+
   const activeRemindersCount = reminders.filter(r => r.isActive).length;
   const setupNeeded = !locationGranted || !notifGranted;
 
   return (
-    // CSS Grid outer shell — the ONLY reliable cross-browser approach
-    // grid-cols: [sidebar] [main]   grid-rows: [full height]
-    <div
-      className="fixed inset-0 font-sans text-slate-900"
-      style={{ overscrollBehavior: 'none', touchAction: 'none' }}
-    >
-      {/* Inner grid: sidebar + main side by side */}
-      <div
-        className="h-full w-full flex bg-slate-100"
-        style={{ height: '100dvh' }}
-      >
+    <div className="h-full w-full flex bg-slate-100 font-sans text-slate-900 overflow-hidden relative">
       {/* 1. SIDEBAR */}
       <aside
-        className={`flex-shrink-0 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
+        className={`flex-shrink-0 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col transition-all duration-300 ease-in-out overflow-hidden z-40 ${
           sidebarOpen ? 'w-72' : 'w-0'
         }`}
-        style={{ height: '100dvh' }}
       >
         <div className="w-72 h-full flex flex-col overflow-hidden">
         {/* Brand Header */}
@@ -755,11 +793,8 @@ export const Chat: React.FC = () => {
         />
       )}
 
-      {/* 2. MAIN PANEL — flex-1 flex-col, fills remaining width */}
-      <main
-        className="flex-1 flex flex-col bg-slate-50 overflow-hidden"
-        style={{ height: '100dvh', minWidth: 0 }}
-      >
+      {/* 2. MAIN CHAT PANEL */}
+      <main className="flex-1 h-full min-h-0 min-w-0 flex flex-col bg-slate-50 relative overflow-hidden">
         {/* Top Header Bar (Optimized for Mobile, Tablet & Desktop) */}
         <header className="h-14 bg-white border-b border-slate-300 px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0 z-10">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -863,11 +898,43 @@ export const Chat: React.FC = () => {
           </div>
         </div>
 
+        {/* Custom DokitaAI Branded Swipe-Down-To-Reload Indicator */}
+        <div
+          className="overflow-hidden transition-all duration-200 flex items-center justify-center bg-teal-50 border-b border-teal-200/70 shrink-0 select-none"
+          style={{
+            height: pullY > 0 ? `${pullY}px` : '0px',
+            opacity: pullY > 6 ? Math.min(pullY / 35, 1) : 0,
+          }}
+        >
+          <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 py-1.5">
+            <div
+              className={`w-6 h-6 rounded-full bg-teal-700 text-white flex items-center justify-center shadow-xs transition-transform ${
+                isRefreshing ? 'animate-spin' : ''
+              }`}
+              style={{
+                transform: isRefreshing ? undefined : `rotate(${pullY * 6}deg)`,
+              }}
+            >
+              {isRefreshing ? <RefreshCw className="w-3 h-3" /> : <Activity className="w-3 h-3 text-white" />}
+            </div>
+            <span>
+              {isRefreshing
+                ? 'Refreshing DokitaAI...'
+                : pullY >= 48
+                ? 'Release to reload'
+                : 'Pull down to refresh'}
+            </span>
+          </div>
+        </div>
+
         {/* Scrollable Conversation Stream — flex-1 takes all remaining space */}
         <div
           ref={chatScrollContainerRef}
-          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4"
-          style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4"
+          style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
         >
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto space-y-6 py-6 px-2">
@@ -1191,8 +1258,6 @@ export const Chat: React.FC = () => {
           </div>
         </div>
       </main>
-
-      </div>{/* end inner flex */}
 
       {/* Medication Reminders Modal */}
       <MedicationReminderModal

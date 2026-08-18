@@ -4,12 +4,13 @@
 
 /* ============================================================
    ROOT LAYOUT
-   - html/body/root have NO fixed height — home page must be able to scroll
-   - The chat page manages its own viewport height via fixed positioning
+   - html/body/root allow natural scrolling across all pages
+   - Fullscreen routes like /chat manage their viewport via fixed/flex layouts
    ============================================================ */
 html, body {
   margin: 0;
   padding: 0;
+  min-height: 100%;
 }
 
 body {
@@ -20,12 +21,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-}
-
-/* Disable pull-to-refresh on chat page (added via JS class on body) */
-body.chat-page {
-  overscroll-behavior: none;
-  overflow: hidden;
 }
 
 @layer base {
