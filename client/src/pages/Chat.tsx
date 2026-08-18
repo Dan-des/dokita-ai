@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { safeStorage } from '../utils/storage';
 import { 
   askTriage, 
   getChatSessions, 
@@ -83,6 +84,10 @@ export const Chat: React.FC = () => {
   const [progressStep, setProgressStep] = useState<number>(0);
   const [locationGranted, setLocationGranted] = useState<boolean>(false);
   const [notifGranted, setNotifGranted] = useState<boolean>(false);
+  const [micGranted, setMicGranted] = useState<boolean>(false);
+  const [showPermissionModal, setShowPermissionModal] = useState<boolean>(() => {
+    return !safeStorage.getItem('dokita_permissions_onboarded');
+  });
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const modeDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -184,6 +189,16 @@ export const Chat: React.FC = () => {
     if ('Notification' in window) {
       setNotifGranted(Notification.permission === 'granted');
     }
+    // Query microphone permission status
+    if (navigator.permissions && navigator.permissions.query) {
+      try {
+        navigator.permissions.query({ name: 'microphone' as any }).then((status) => {
+          setMicGranted(status.state === 'granted');
+        }).catch(() => {});
+      } catch (err) {
+        // Ignored if query isn't supported
+      }
+    }
   }, []);
 
   // Progress step cycling while loading
@@ -234,6 +249,17 @@ export const Chat: React.FC = () => {
     if (!('Notification' in window)) return;
     const result = await Notification.requestPermission();
     setNotifGranted(result === 'granted');
+  };
+
+  const requestMicrophone = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setMicGranted(true);
+    } catch (e) {
+      console.warn('Microphone permission denied', e);
+      alert('Microphone access denied. Please allow microphone access in your settings.');
+    }
   };
 
   const handleSendMessage = async (customPrompt?: string) => {
@@ -1296,6 +1322,104 @@ export const Chat: React.FC = () => {
         isOpen={reminderModalOpen}
         onClose={() => setReminderModalOpen(false)}
       />
+
+      {/* 🚀 First-time Permission Onboarding Modal */}
+      {showPermissionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-6 animate-in zoom-in-95 duration-200">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center mx-auto text-2xl font-bold">
+                🚀
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Welcome to DokitaAI!</h3>
+              <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                Let's set up your device permissions to unlock the full clinical consulting experience.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {/* 1. Location */}
+              <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg">
+                    📍
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900 leading-tight">Nearby Hospital Locator</p>
+                    <p className="text-[10px] text-slate-500 leading-tight">Find emergency clinics close to you</p>
+                  </div>
+                </div>
+                {locationGranted ? (
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">Allowed</span>
+                ) : (
+                  <button
+                    onClick={requestLocation}
+                    className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded-lg text-[10px] font-bold transition-all active:scale-95 cursor-pointer"
+                  >
+                    Enable
+                  </button>
+                )}
+              </div>
+
+              {/* 2. Notifications */}
+              <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-lg">
+                    🔔
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900 leading-tight">Medication Reminders</p>
+                    <p className="text-[10px] text-slate-500 leading-tight">Receive native medication alerts</p>
+                  </div>
+                </div>
+                {notifGranted ? (
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">Allowed</span>
+                ) : (
+                  <button
+                    onClick={requestNotifications}
+                    className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded-lg text-[10px] font-bold transition-all active:scale-95 cursor-pointer"
+                  >
+                    Enable
+                  </button>
+                )}
+              </div>
+
+              {/* 3. Microphone */}
+              <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center text-lg">
+                    🎙️
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900 leading-tight">Voice Consultations</p>
+                    <p className="text-[10px] text-slate-500 leading-tight">Describe symptoms using voice dictation</p>
+                  </div>
+                </div>
+                {micGranted ? (
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">Allowed</span>
+                ) : (
+                  <button
+                    onClick={requestMicrophone}
+                    className="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded-lg text-[10px] font-bold transition-all active:scale-95 cursor-pointer"
+                  >
+                    Enable
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                safeStorage.setItem('dokita_permissions_onboarded', 'true');
+                setShowPermissionModal(false);
+              }}
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
+            >
+              Done & Let's Start
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
