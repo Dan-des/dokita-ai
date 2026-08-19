@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, ShieldAlert, PhoneCall } from 'lucide-react';
+import { ActivityIcon, ShieldAlertIcon, PhoneIcon } from './Icons';
 import { Link } from 'react-router-dom';
 
 export const Footer: React.FC = () => {
@@ -9,12 +9,12 @@ export const Footer: React.FC = () => {
       <div className="bg-teal-950 border-b border-teal-800/80 py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2 text-teal-200 font-medium">
-            <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+            <ShieldAlertIcon className="w-4 h-4 text-amber-400 shrink-0" />
             <span>Facing an acute emergency? Call dispatch immediately.</span>
           </div>
           <div className="flex items-center gap-4 text-teal-100 font-semibold">
             <span className="flex items-center gap-1.5 bg-teal-900 px-2.5 py-1 rounded-md border border-teal-700">
-              <PhoneCall className="w-3.5 h-3.5 text-teal-300" />
+              <PhoneIcon className="w-3.5 h-3.5 text-teal-300" />
               <span>Emergency Hotlines: 112 / 767</span>
             </span>
             <Link to="/chat" className="underline hover:text-white transition-colors">
@@ -31,7 +31,7 @@ export const Footer: React.FC = () => {
           <div className="space-y-3 md:col-span-1">
             <div className="flex items-center space-x-2.5">
               <div className="w-8 h-8 rounded-lg bg-teal-700 flex items-center justify-center text-white font-bold">
-                <Activity className="w-5 h-5" />
+                <ActivityIcon className="w-5 h-5" />
               </div>
               <span className="text-lg font-bold text-white tracking-tight">
                 Dokita<span className="text-teal-400">AI</span>
@@ -67,7 +67,7 @@ export const Footer: React.FC = () => {
           {/* Column 4: Statutory Medical Disclaimer */}
           <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700/80 space-y-2 text-xs">
             <div className="flex items-center gap-1.5 text-amber-400 font-semibold uppercase tracking-wider text-[10px]">
-              <ShieldAlert className="w-3.5 h-3.5" />
+              <ShieldAlertIcon className="w-3.5 h-3.5" />
               <span>Statutory Disclaimer</span>
             </div>
             <p className="text-slate-300 leading-relaxed text-[11px]">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, X, Smartphone } from 'lucide-react';
+import { DownloadIcon, CloseIcon, SmartphoneIcon } from './Icons';
 import { safeStorage } from '../utils/storage';
 
 export const InstallPwaBanner: React.FC = () => {
@@ -46,7 +46,7 @@ export const InstallPwaBanner: React.FC = () => {
       <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-xl border border-slate-800 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center text-white shrink-0">
-            <Smartphone className="w-5 h-5" />
+            <SmartphoneIcon className="w-5 h-5" />
           </div>
           <div>
             <p className="text-xs font-bold leading-tight">Install DokitaAI App</p>
@@ -61,7 +61,7 @@ export const InstallPwaBanner: React.FC = () => {
             onClick={handleInstallClick}
             className="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
+            <DownloadIcon className="w-3.5 h-3.5" />
             <span>Install</span>
           </button>
           <button
@@ -69,7 +69,7 @@ export const InstallPwaBanner: React.FC = () => {
             className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
             title="Dismiss"
           >
-            <X className="w-4 h-4" />
+            <CloseIcon className="w-4 h-4" />
           </button>
         </div>
       </div>

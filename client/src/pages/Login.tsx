@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginUser } from '../api/auth';
-import { Activity, LogIn, Lock, Mail, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { ActivityIcon, LoginIcon, LockIcon, MailIcon, AlertCircleIcon, ArrowRightIcon, LoaderIcon } from '../components/Icons';
 
 export const Login: React.FC = () => {
   const { login, isAuthenticated } = useAuth();
@@ -53,7 +53,7 @@ export const Login: React.FC = () => {
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center space-x-2">
             <div className="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center text-white font-bold">
-              <Activity className="w-5 h-5" />
+              <ActivityIcon className="w-5 h-5" />
             </div>
             <span className="text-2xl font-extrabold text-slate-900 tracking-tight">
               Dokita<span className="text-teal-700">AI</span>
@@ -69,7 +69,7 @@ export const Login: React.FC = () => {
         <div className="bg-white p-8 rounded-2xl border border-slate-300 space-y-5">
           {errorMsg && (
             <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+              <AlertCircleIcon className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
@@ -78,7 +78,7 @@ export const Login: React.FC = () => {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-700">Email Address</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <MailIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
                   type="email"
                   required
@@ -95,7 +95,7 @@ export const Login: React.FC = () => {
                 <label className="text-xs font-semibold text-slate-700">Password</label>
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <LockIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
                   type="password"
                   required
@@ -114,14 +114,14 @@ export const Login: React.FC = () => {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <LoaderIcon className="w-4 h-4 animate-spin" />
                   <span>Authenticating...</span>
                 </>
               ) : (
                 <>
-                  <LogIn className="w-4 h-4" />
+                  <LoginIcon className="w-4 h-4" />
                   <span>Sign In & Enter Chat</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  <ArrowRightIcon className="w-4 h-4 ml-1" />
                 </>
               )}
             </button>

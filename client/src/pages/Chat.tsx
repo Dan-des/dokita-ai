@@ -17,42 +17,7 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useTextToSpeech } from '../hooks/useTextToSpeech';
 import { useReminders } from '../context/ReminderContext';
 import { fetchNearbyHospitals, formatHospitalResults, isHospitalQuery, searchHospitalsByQuery } from '../hooks/useNearbyHospitals';
-import { 
-  Send, 
-  FileDown, 
-  Bot, 
-  User as UserIcon, 
-  RotateCcw,
-  ShieldAlert,
-  Loader2,
-  Plus,
-  Clock,
-  LogOut,
-  LogIn,
-  Activity,
-  ChevronRight,
-  MessageSquare,
-  Mic,
-  MicOff,
-  Trash2,
-  Copy,
-  Check,
-  ShieldCheck,
-  PanelLeftClose,
-  PanelLeft,
-  Volume2,
-  Square,
-  Bell,
-  Pill,
-  X,
-  Globe,
-  MapPin,
-  RefreshCw,
-  Stethoscope,
-  ChevronDown,
-  Sparkles,
-  Settings
-} from 'lucide-react';
+import { SendIcon, FileDownIcon, BotIcon, UserIcon, ResetIcon, ShieldAlertIcon, LoaderIcon, PlusIcon, ClockIcon, LogoutIcon, LoginIcon, ActivityIcon, ChevronRightIcon, ChatBubbleIcon, MicIcon, MicOffIcon, TrashIcon, CopyIcon, CheckIcon, ShieldCheckIcon, MenuCloseIcon, MenuOpenIcon, VolumeIcon, StopIcon, BellIcon, PillIcon, CloseIcon, GlobeIcon, MapPinIcon, RefreshIcon, StethoscopeIcon, ChevronDownIcon, SearchIcon, SettingsIcon } from '../components/Icons';
 
 // AI progress steps shown while loading — one at a time, no emojis
 const PROGRESS_STEPS = [
@@ -627,7 +592,7 @@ export const Chat: React.FC = () => {
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded-xl bg-teal-700 flex items-center justify-center text-white font-bold">
-              <Activity className="w-4 h-4 text-white" />
+              <ActivityIcon className="w-4 h-4 text-white" />
             </div>
             <div className="flex flex-col">
               <span className="text-base font-bold text-white tracking-tight flex items-center gap-1">
@@ -643,7 +608,7 @@ export const Chat: React.FC = () => {
             className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
             title="Collapse Sidebar"
           >
-            <PanelLeftClose className="w-5 h-5" />
+            <MenuCloseIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -653,7 +618,7 @@ export const Chat: React.FC = () => {
             onClick={handleNewChat}
             className="w-full py-2.5 px-3.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <PlusIcon className="w-4 h-4" />
             <span>New Consultation</span>
           </button>
 
@@ -666,7 +631,7 @@ export const Chat: React.FC = () => {
             className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors flex items-center justify-between cursor-pointer"
           >
             <span className="flex items-center gap-2">
-              <Bell className="w-3.5 h-3.5 text-teal-400" />
+              <BellIcon className="w-3.5 h-3.5 text-teal-400" />
               <span>Medication Reminders</span>
             </span>
             {activeRemindersCount > 0 && (
@@ -681,13 +646,13 @@ export const Chat: React.FC = () => {
         {setupNeeded && (
           <div className="mx-3 mb-2 p-3 rounded-xl bg-slate-800 border border-slate-700 space-y-2">
             <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Settings className="w-3 h-3 text-slate-300 shrink-0" />
+              <SettingsIcon className="w-3 h-3 text-slate-300 shrink-0" />
               <span>Quick Setup</span>
             </p>
             {!locationGranted && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                  <MapPinIcon className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                   <div>
                     <p className="text-[11px] font-semibold text-slate-200">Location Access</p>
                     <p className="text-[10px] text-slate-500">For hospital finder</p>
@@ -704,7 +669,7 @@ export const Chat: React.FC = () => {
             {!notifGranted && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Bell className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                  <BellIcon className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                   <div>
                     <p className="text-[11px] font-semibold text-slate-200">Notifications</p>
                     <p className="text-[10px] text-slate-500">Medication reminders</p>
@@ -725,7 +690,7 @@ export const Chat: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
           <div className="flex items-center justify-between px-2 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
             <span className="flex items-center gap-1.5">
-              <Clock className="w-3 h-3 text-slate-400" />
+              <ClockIcon className="w-3 h-3 text-slate-400" />
               <span>Consultation History</span>
             </span>
             {isAuthenticated && sessions.length > 0 && (
@@ -753,7 +718,7 @@ export const Chat: React.FC = () => {
             </div>
           ) : isLoadingSessions ? (
             <div className="p-4 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-500" />
+              <LoaderIcon className="w-3.5 h-3.5 animate-spin text-teal-500" />
               <span>Loading history...</span>
             </div>
           ) : sessions.length === 0 ? (
@@ -791,9 +756,9 @@ export const Chat: React.FC = () => {
                       className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
                       title="Delete consultation record"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <TrashIcon className="w-3.5 h-3.5" />
                     </button>
-                    <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-slate-400 shrink-0" />
+                    <ChevronRightIcon className="w-3 h-3 text-slate-600 group-hover:text-slate-400 shrink-0" />
                   </div>
                 </div>
               );
@@ -808,7 +773,7 @@ export const Chat: React.FC = () => {
               to="/admin"
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-teal-300 hover:bg-teal-950/60 transition-colors font-medium"
             >
-              <ShieldCheck className="w-4 h-4 text-teal-400 shrink-0" />
+              <ShieldCheckIcon className="w-4 h-4 text-teal-400 shrink-0" />
               <span>Admin Operations</span>
             </Link>
           </div>
@@ -837,7 +802,7 @@ export const Chat: React.FC = () => {
                 className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Sign Out to Overview"
               >
-                <LogOut className="w-4 h-4" />
+                <LogoutIcon className="w-4 h-4" />
               </button>
             </>
           ) : (
@@ -845,7 +810,7 @@ export const Chat: React.FC = () => {
               to="/login"
               className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold text-teal-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors"
             >
-              <LogIn className="w-3.5 h-3.5" />
+              <LoginIcon className="w-3.5 h-3.5" />
               <span>Login / Register</span>
             </Link>
           )}
@@ -873,9 +838,9 @@ export const Chat: React.FC = () => {
               title={sidebarOpen ? 'Collapse menu' : 'Open history & menu'}
             >
               {sidebarOpen ? (
-                <PanelLeftClose className="w-4 h-4 text-teal-700" />
+                <MenuCloseIcon className="w-4 h-4 text-teal-700" />
               ) : (
-                <PanelLeft className="w-4 h-4 text-teal-700" />
+                <MenuOpenIcon className="w-4 h-4 text-teal-700" />
               )}
               <span className="hidden sm:inline">Menu</span>
             </button>
@@ -897,7 +862,7 @@ export const Chat: React.FC = () => {
               className="px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 rounded-xl border border-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer relative"
               title="View & Set Medication Reminders"
             >
-              <Bell className="w-3.5 h-3.5 text-teal-700" />
+              <BellIcon className="w-3.5 h-3.5 text-teal-700" />
               <span className="hidden sm:inline">Reminders</span>
               {activeRemindersCount > 0 && (
                 <span className="w-2 h-2 rounded-full bg-teal-600 absolute -top-0.5 -right-0.5" />
@@ -911,7 +876,7 @@ export const Chat: React.FC = () => {
                 className="hidden lg:flex px-2.5 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl border border-red-200 transition-colors items-center gap-1 cursor-pointer"
                 title="Delete this consultation for privacy"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <TrashIcon className="w-3.5 h-3.5" />
                 <span>Delete</span>
               </button>
             )}
@@ -921,7 +886,7 @@ export const Chat: React.FC = () => {
                 onClick={handleNewChat}
                 className="hidden sm:flex px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 rounded-xl border border-slate-300 transition-colors items-center gap-1 cursor-pointer"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <ResetIcon className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Clear</span>
               </button>
             )}
@@ -931,7 +896,7 @@ export const Chat: React.FC = () => {
               className="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-white bg-teal-700 hover:bg-teal-800 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
               title="Download structured briefing for attending physician"
             >
-              <FileDown className="w-3.5 h-3.5" />
+              <FileDownIcon className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Export for Doctor</span>
               <span className="md:hidden">PDF</span>
             </button>
@@ -942,7 +907,7 @@ export const Chat: React.FC = () => {
         {activeAlert && (
           <div className="bg-teal-700 text-white px-4 py-2.5 flex items-center justify-between text-xs animate-in slide-in-from-top-2 duration-200 shrink-0 shadow-md">
             <div className="flex items-center gap-2">
-              <Pill className="w-4 h-4 text-teal-200 shrink-0 animate-bounce" />
+              <PillIcon className="w-4 h-4 text-teal-200 shrink-0 animate-bounce" />
               <span>
                 <strong>Medication Due:</strong> It's time to take your <strong>{activeAlert.medication}</strong> ({activeAlert.dosage}). {activeAlert.instructions || ''}
               </span>
@@ -959,7 +924,7 @@ export const Chat: React.FC = () => {
         {/* Statutory Medical Notice Banner */}
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-1.5 flex items-center justify-between text-[11px] sm:text-xs text-amber-900 shrink-0">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <ShieldAlertIcon className="w-3.5 h-3.5 text-amber-600 shrink-0" />
             <span className="truncate">
               <strong>Notice:</strong> Preliminary AI guidance only. In life-critical emergencies, call 112 / 767 immediately.
             </span>
@@ -983,7 +948,7 @@ export const Chat: React.FC = () => {
                 transform: isRefreshing ? undefined : `rotate(${pullY * 6}deg)`,
               }}
             >
-              {isRefreshing ? <RefreshCw className="w-3 h-3" /> : <Activity className="w-3 h-3 text-white" />}
+              {isRefreshing ? <RefreshIcon className="w-3 h-3" /> : <ActivityIcon className="w-3 h-3 text-white" />}
             </div>
             <span>
               {isRefreshing
@@ -1007,7 +972,7 @@ export const Chat: React.FC = () => {
           {messages.length === 0 ? (
             <div className="py-4 px-2 max-w-xl mx-auto space-y-4 text-center my-auto">
               <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center mx-auto shadow-xs">
-                <Bot className="w-6 h-6" />
+                <BotIcon className="w-6 h-6" />
               </div>
               <div className="space-y-1">
                 <h2 className="text-lg sm:text-xl font-bold text-slate-900">
@@ -1027,7 +992,7 @@ export const Chat: React.FC = () => {
                       className="w-full text-left px-3 py-2.5 rounded-xl text-xs bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-300 hover:border-teal-700 transition-colors flex items-center justify-between group cursor-pointer shadow-xs"
                     >
                       <span className="truncate pr-2 font-medium">{item}</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-700 shrink-0" />
+                      <ChevronRightIcon className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-700 shrink-0" />
                     </button>
                   ))}
                 </div>
@@ -1046,7 +1011,7 @@ export const Chat: React.FC = () => {
                 >
                   {!isUser && (
                     <div className="w-8 h-8 rounded-xl bg-teal-700 text-white flex items-center justify-center shrink-0 mt-1">
-                      <Bot className="w-4 h-4" />
+                      <BotIcon className="w-4 h-4" />
                     </div>
                   )}
 
@@ -1069,14 +1034,14 @@ export const Chat: React.FC = () => {
                               }`}
                               title={isSpeakingThis ? 'Stop' : 'Listen'}
                             >
-                              {isSpeakingThis ? <Square className="w-3.5 h-3.5 fill-teal-800" /> : <Volume2 className="w-3.5 h-3.5" />}
+                              {isSpeakingThis ? <StopIcon className="w-3.5 h-3.5 fill-teal-800" /> : <VolumeIcon className="w-3.5 h-3.5" />}
                             </button>
                           )}
                           <button
                             onClick={() => handleCopyMessage(msg.content, index)}
                             className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                           >
-                            {copiedIndex === index ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedIndex === index ? <CheckIcon className="w-3.5 h-3.5 text-emerald-600" /> : <CopyIcon className="w-3.5 h-3.5" />}
                           </button>
                           <span className="font-mono">
                             {new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1101,7 +1066,7 @@ export const Chat: React.FC = () => {
                         onClick={() => handleSendMessage(messages[index - 1]?.content)}
                         className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold transition-colors cursor-pointer"
                       >
-                        <RefreshCw className="w-3 h-3" />
+                        <RefreshIcon className="w-3 h-3" />
                         Retry
                       </button>
                     )}
@@ -1121,10 +1086,10 @@ export const Chat: React.FC = () => {
           {isLoading && (
             <div className="flex gap-3 max-w-3xl lg:max-w-4xl mx-auto justify-start">
               <div className="w-8 h-8 rounded-xl bg-teal-700 text-white flex items-center justify-center shrink-0 mt-1">
-                <Bot className="w-4 h-4" />
+                <BotIcon className="w-4 h-4" />
               </div>
               <div className="bg-white border border-slate-300 rounded-2xl rounded-tl-xs px-4 py-3 flex items-center gap-3 min-w-[200px]">
-                <Loader2 className="w-3.5 h-3.5 text-teal-700 animate-spin shrink-0" />
+                <LoaderIcon className="w-3.5 h-3.5 text-teal-700 animate-spin shrink-0" />
                 <span
                   key={progressStep}
                   className="text-xs text-slate-600 font-medium animate-pulse"
@@ -1176,16 +1141,16 @@ export const Chat: React.FC = () => {
                 >
                   {chatMode === 'ai' ? (
                     <>
-                      <Sparkles className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+                      <SearchIcon className="w-3.5 h-3.5 text-teal-700 shrink-0" />
                       <span>Dokita AI Triage</span>
                     </>
                   ) : (
                     <>
-                      <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <GlobeIcon className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                       <span>Live Web Search</span>
                     </>
                   )}
-                  <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${modeDropdownOpen ? 'rotate-180 text-teal-700' : ''}`} />
+                  <ChevronDownIcon className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${modeDropdownOpen ? 'rotate-180 text-teal-700' : ''}`} />
                 </button>
 
                 {/* Popover Dropdown Menu */}
@@ -1212,12 +1177,12 @@ export const Chat: React.FC = () => {
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                           chatMode === 'ai' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600'
                         }`}>
-                          <Sparkles className="w-3.5 h-3.5" />
+                          <SearchIcon className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
                             <span className="text-xs font-bold text-slate-900">Dokita AI Triage</span>
-                            {chatMode === 'ai' && <Check className="w-3.5 h-3.5 text-teal-700 shrink-0" />}
+                            {chatMode === 'ai' && <CheckIcon className="w-3.5 h-3.5 text-teal-700 shrink-0" />}
                           </div>
                           <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
                             Evidence-based clinical triage & hospital locator
@@ -1240,12 +1205,12 @@ export const Chat: React.FC = () => {
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                           chatMode === 'websearch' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600'
                         }`}>
-                          <Globe className="w-3.5 h-3.5" />
+                          <GlobeIcon className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
                             <span className="text-xs font-bold text-slate-900">Live Web Search</span>
-                            {chatMode === 'websearch' && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
+                            {chatMode === 'websearch' && <CheckIcon className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
                           </div>
                           <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
                             Google Search grounding with live citations
@@ -1288,7 +1253,7 @@ export const Chat: React.FC = () => {
                   }`}
                   title={isListening ? 'Stop listening' : 'Voice input'}
                 >
-                  {isListening ? <MicOff className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
+                  {isListening ? <MicOffIcon className="w-4 h-4 animate-pulse" /> : <MicIcon className="w-4 h-4" />}
                 </button>
               )}
 
@@ -1312,7 +1277,7 @@ export const Chat: React.FC = () => {
                 disabled={!inputValue.trim() || isLoading}
                 className="p-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white transition-colors active:scale-95 disabled:opacity-30 disabled:pointer-events-none cursor-pointer shrink-0"
               >
-                <Send className="w-4 h-4" />
+                <SendIcon className="w-4 h-4" />
               </button>
             </form>
           </div>
@@ -1331,7 +1296,7 @@ export const Chat: React.FC = () => {
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-6 animate-in zoom-in-95 duration-200">
             <div className="text-center space-y-2">
               <div className="w-12 h-12 rounded-2xl bg-teal-700 text-white flex items-center justify-center mx-auto shadow-md">
-                <Activity className="w-6 h-6 text-white" />
+                <ActivityIcon className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">Welcome to DokitaAI!</h3>
               <p className="text-xs text-slate-500 max-w-xs mx-auto">
@@ -1344,7 +1309,7 @@ export const Chat: React.FC = () => {
               <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-                    <MapPin className="w-4 h-4" />
+                    <MapPinIcon className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-900 leading-tight">Nearby Hospital Locator</p>
@@ -1367,7 +1332,7 @@ export const Chat: React.FC = () => {
               <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-                    <Bell className="w-4 h-4" />
+                    <BellIcon className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-900 leading-tight">Medication Reminders</p>
@@ -1390,7 +1355,7 @@ export const Chat: React.FC = () => {
               <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
-                    <Mic className="w-4 h-4" />
+                    <MicIcon className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-900 leading-tight">Voice Consultations</p>

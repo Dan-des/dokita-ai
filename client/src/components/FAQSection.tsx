@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, HelpCircle, ShieldCheck, Stethoscope, Clock, Globe } from 'lucide-react';
+import { ChevronDownIcon, HelpIcon, ShieldCheckIcon, StethoscopeIcon, ClockIcon, GlobeIcon } from './Icons';
 
 interface FAQItem {
   question: string;
@@ -51,7 +51,7 @@ export const FAQSection: React.FC = () => {
     <section className="space-y-6">
       <div className="space-y-1.5 text-center sm:text-left">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold">
-          <HelpCircle className="w-3.5 h-3.5" />
+          <HelpIcon className="w-3.5 h-3.5" />
           <span>Frequently Asked Questions</span>
         </div>
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight">

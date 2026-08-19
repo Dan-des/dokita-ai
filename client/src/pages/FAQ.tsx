@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, PhoneCall } from 'lucide-react';
+import { ArrowLeftIcon, ChatBubbleIcon, PhoneIcon } from '../components/Icons';
 import { FAQSection } from '../components/FAQSection';
 
 export const FAQ: React.FC = () => {
@@ -11,7 +11,7 @@ export const FAQ: React.FC = () => {
         to="/"
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeftIcon className="w-4 h-4" />
         <span>Return to Main Portal</span>
       </Link>
 
@@ -30,14 +30,14 @@ export const FAQ: React.FC = () => {
             to="/chat"
             className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
           >
-            <MessageSquare className="w-3.5 h-3.5" />
+            <ChatBubbleIcon className="w-3.5 h-3.5" />
             <span>Start Triage</span>
           </Link>
           <a
             href="tel:112"
             className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
           >
-            <PhoneCall className="w-3.5 h-3.5" />
+            <PhoneIcon className="w-3.5 h-3.5" />
             <span>Emergency 112</span>
           </a>
         </div>

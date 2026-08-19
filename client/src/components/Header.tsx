@@ -1,19 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Activity, 
-  MessageSquare, 
-  ShieldCheck, 
-  LogOut, 
-  LogIn, 
-  UserPlus, 
-  Menu, 
-  X,
-  ChevronDown,
-  User as UserIcon,
-  HelpCircle
-} from 'lucide-react';
+import { ActivityIcon, ChatBubbleIcon, ShieldCheckIcon, LogoutIcon, LoginIcon, UserPlusIcon, MenuIcon, CloseIcon, ChevronDownIcon, UserIcon, HelpIcon } from './Icons';
 
 interface HeaderProps {
   onOpenFeedback?: () => void;
@@ -41,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenFeedback }) => {
           {/* Brand Logo */}
           <Link to="/" className="flex items-center space-x-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center text-white font-bold">
-              <Activity className="w-5 h-5 text-white" />
+              <ActivityIcon className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-1">
@@ -67,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenFeedback }) => {
                 isActive('/chat') ? 'text-teal-800 bg-teal-50 border border-teal-200' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <MessageSquare className="w-3.5 h-3.5 text-teal-700" />
+              <ChatBubbleIcon className="w-3.5 h-3.5 text-teal-700" />
               <span>Launch Chat</span>
             </Link>
             <Link
@@ -76,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenFeedback }) => {
                 isActive('/faq') ? 'text-teal-800 bg-teal-50 border border-teal-200' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <HelpCircle className="w-3.5 h-3.5 text-slate-600" />
+              <HelpIcon className="w-3.5 h-3.5 text-slate-600" />
               <span>FAQ</span>
             </Link>
             {onOpenFeedback && (
@@ -97,14 +85,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenFeedback }) => {
                   to="/login"
                   className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-300 transition-colors flex items-center gap-1.5"
                 >
-                  <LogIn className="w-3.5 h-3.5" />
+                  <LoginIcon className="w-3.5 h-3.5" />
                   <span>Login</span>
                 </Link>
                 <Link
                   to="/register"
                   className="px-3.5 py-1.5 text-xs font-semibold text-white bg-teal-700 hover:bg-teal-800 rounded-lg transition-colors flex items-center gap-1.5"
                 >
-                  <UserPlus className="w-3.5 h-3.5" />
+                  <UserPlusIcon className="w-3.5 h-3.5" />
                   <span>Sign Up</span>
                 </Link>
               </>
@@ -122,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenFeedback }) => {
                       {user?.name}
                     </p>
                   </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  <ChevronDownIcon className="w-3.5 h-3.5 text-slate-400" />
                 </button>
 
                 {userDropdownOpen && (
@@ -138,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenFeedback }) => {
                         onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center space-x-2 px-3.5 py-2 text-xs text-teal-800 hover:bg-teal-50 font-semibold transition-colors"
                       >
-                        <ShieldCheck className="w-4 h-4 text-teal-700" />
+                        <ShieldCheckIcon className="w-4 h-4 text-teal-700" />
                         <span>Admin Console</span>
                       </Link>
                     )}
@@ -148,7 +136,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenFeedback }) => {
                       onClick={() => setUserDropdownOpen(false)}
                       className="flex items-center space-x-2 px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 transition-colors"
                     >
-                      <MessageSquare className="w-4 h-4 text-slate-500" />
+                      <ChatBubbleIcon className="w-4 h-4 text-slate-500" />
                       <span>My Consultations</span>
                     </Link>
 
@@ -156,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenFeedback }) => {
                       onClick={handleLogout}
                       className="w-full flex items-center space-x-2 px-3.5 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors border-t border-slate-100 cursor-pointer"
                     >
-                      <LogOut className="w-4 h-4" />
+                      <LogoutIcon className="w-4 h-4" />
                       <span>Sign Out</span>
                     </button>
                   </div>
@@ -171,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenFeedback }) => {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <CloseIcon className="w-5 h-5" /> : <MenuIcon className="w-5 h-5" />}
             </button>
           </div>
         </div>

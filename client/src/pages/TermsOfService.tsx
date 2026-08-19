@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldAlert, ArrowLeft, AlertCircle } from 'lucide-react';
+import { ShieldAlertIcon, ArrowLeftIcon, AlertCircleIcon } from '../components/Icons';
 
 export const TermsOfService: React.FC = () => {
   return (
@@ -10,14 +10,14 @@ export const TermsOfService: React.FC = () => {
         to="/"
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeftIcon className="w-4 h-4" />
         <span>Return to Main Portal</span>
       </Link>
 
       {/* Header */}
       <div className="border-b border-slate-200 pb-6 space-y-2">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold">
-          <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
+          <ShieldAlertIcon className="w-3.5 h-3.5 text-amber-600" />
           <span>Statutory Terms & Clinical Disclaimer</span>
         </div>
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -31,7 +31,7 @@ export const TermsOfService: React.FC = () => {
       {/* Statutory Notice Callout */}
       <div className="p-4 bg-red-50 border-l-4 border-red-600 rounded-r-xl text-red-950 text-xs sm:text-sm space-y-1">
         <p className="font-bold flex items-center gap-1.5">
-          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+          <AlertCircleIcon className="w-4 h-4 text-red-600 shrink-0" />
           <span>Emergency Medical Notice (112 / 767 / 911)</span>
         </p>
         <p className="leading-relaxed">

@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Building2, 
-  ArrowRight, 
-  Search, 
-  Stethoscope, 
-  Share2, 
-  HelpCircle, 
-  ShieldCheck, 
-  Globe, 
-  FileDown, 
-  PhoneCall 
-} from 'lucide-react';
+import { HospitalIcon, ArrowRightIcon, SearchIcon, StethoscopeIcon, ShareIcon, HelpIcon, ShieldCheckIcon, GlobeIcon, FileDownIcon, PhoneIcon } from '../components/Icons';
 import { SymptomChip } from '../components/SymptomChip';
 import { FAQSection } from '../components/FAQSection';
 import { SocialShareModal } from '../components/SocialShareModal';
@@ -91,7 +80,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
 
         {/* Clinical Platform Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 text-xs font-semibold">
-          <ShieldCheck className="w-3.5 h-3.5 text-teal-700" />
+          <ShieldCheckIcon className="w-3.5 h-3.5 text-teal-700" />
           <span>Clinical AI Telehealth Assistant • Verified Guidelines (WHO / CDC / NHS)</span>
         </div>
 
@@ -111,7 +100,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
             className="p-2 bg-white rounded-2xl border border-slate-300 flex flex-col sm:flex-row items-center gap-2 shadow-sm hover:shadow-md transition-shadow duration-300"
           >
             <div className="flex items-center gap-2.5 px-3 py-2 w-full">
-              <Search className="w-4 h-4 text-slate-400 shrink-0" />
+              <SearchIcon className="w-4 h-4 text-slate-400 shrink-0" />
               <input
                 type="text"
                 value={quickQuestion}
@@ -125,7 +114,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
               className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-95 hover:-translate-y-0.5"
             >
               <span>Launch Chat</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRightIcon className="w-4 h-4" />
             </button>
           </form>
 
@@ -181,7 +170,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-center justify-center shrink-0">
-              <PhoneCall className="w-5 h-5" />
+              <PhoneIcon className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900">24/7 Emergency Dispatch Hotlines</h3>
@@ -216,7 +205,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
             className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 shrink-0 hover:-translate-y-0.5 active:scale-95"
           >
             <span>Open in WhatsApp</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRightIcon className="w-3.5 h-3.5" />
           </a>
         </div>
       </section>
@@ -232,7 +221,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
           onClick={() => setShareModalOpen(true)}
           className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer hover:-translate-y-0.5"
         >
-          <Share2 className="w-3.5 h-3.5 text-teal-700" />
+          <ShareIcon className="w-3.5 h-3.5 text-teal-700" />
           <span>Share DokitaAI with Family</span>
         </button>
 
@@ -240,7 +229,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
           onClick={onOpenFeedback}
           className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer hover:-translate-y-0.5"
         >
-          <HelpCircle className="w-3.5 h-3.5 text-teal-700" />
+          <HelpIcon className="w-3.5 h-3.5 text-teal-700" />
           <span>Submit Clinical Feedback</span>
         </button>
       </div>

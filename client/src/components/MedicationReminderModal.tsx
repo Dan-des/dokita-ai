@@ -1,17 +1,6 @@
 import React, { useState } from 'react';
 import { useReminders } from '../context/ReminderContext';
-import { 
-  Bell, 
-  Plus, 
-  Trash2, 
-  Clock, 
-  Pill, 
-  Check, 
-  AlertCircle, 
-  X,
-  BellRing,
-  Volume2
-} from 'lucide-react';
+import { BellIcon, PlusIcon, TrashIcon, ClockIcon, PillIcon, CheckIcon, AlertCircleIcon, CloseIcon, BellRingIcon, VolumeIcon } from './Icons';
 
 interface MedicationReminderModalProps {
   isOpen: boolean;
@@ -68,7 +57,7 @@ export const MedicationReminderModal: React.FC<MedicationReminderModalProps> = (
         <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-teal-700 text-white flex items-center justify-center">
-              <Bell className="w-4 h-4" />
+              <BellIcon className="w-4 h-4" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900">Medication Reminders</h3>
@@ -79,7 +68,7 @@ export const MedicationReminderModal: React.FC<MedicationReminderModalProps> = (
             onClick={onClose}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <CloseIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -89,7 +78,7 @@ export const MedicationReminderModal: React.FC<MedicationReminderModalProps> = (
           {notificationPermission !== 'granted' && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs flex items-center justify-between gap-2 text-amber-900">
               <div className="flex items-center gap-2">
-                <BellRing className="w-4 h-4 text-amber-600 shrink-0" />
+                <BellRingIcon className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>Enable device push notifications for live audio chimes.</span>
               </div>
               <button
@@ -103,7 +92,7 @@ export const MedicationReminderModal: React.FC<MedicationReminderModalProps> = (
 
           {successMsg && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -114,7 +103,7 @@ export const MedicationReminderModal: React.FC<MedicationReminderModalProps> = (
               onClick={() => setShowAddForm(true)}
               className="w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-slate-300 hover:border-teal-700 bg-slate-50 hover:bg-teal-50/50 text-slate-700 hover:text-teal-800 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <Plus className="w-4 h-4 text-teal-700" />
+              <PlusIcon className="w-4 h-4 text-teal-700" />
               <span>Add New Medication Reminder</span>
             </button>
           ) : (
@@ -208,7 +197,7 @@ export const MedicationReminderModal: React.FC<MedicationReminderModalProps> = (
 
             {reminders.length === 0 ? (
               <div className="p-6 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-slate-200">
-                <Pill className="w-6 h-6 mx-auto mb-1.5 text-slate-300" />
+                <PillIcon className="w-6 h-6 mx-auto mb-1.5 text-slate-300" />
                 <p>No medication reminders set yet.</p>
                 <p className="text-[10px] text-slate-400 mt-1">
                   You can also type in chat: <em>"Remind me to take Paracetamol at 8pm"</em>
@@ -234,14 +223,14 @@ export const MedicationReminderModal: React.FC<MedicationReminderModalProps> = (
                       }`}
                       title={r.isActive ? 'Pause Reminder' : 'Activate Reminder'}
                     >
-                      <Check className="w-3.5 h-3.5" />
+                      <CheckIcon className="w-3.5 h-3.5" />
                     </button>
                     <div>
                       <p className="font-bold text-slate-900 text-xs">
                         {r.medication} <span className="text-slate-500 font-normal">({r.dosage})</span>
                       </p>
                       <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
-                        <Clock className="w-3 h-3 text-teal-700" />
+                        <ClockIcon className="w-3 h-3 text-teal-700" />
                         <span className="font-semibold text-slate-700">{r.time} Daily</span>
                         {r.instructions && <span>• {r.instructions}</span>}
                       </p>
@@ -253,7 +242,7 @@ export const MedicationReminderModal: React.FC<MedicationReminderModalProps> = (
                     className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                     title="Delete Reminder"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <TrashIcon className="w-4 h-4" />
                   </button>
                 </div>
               ))

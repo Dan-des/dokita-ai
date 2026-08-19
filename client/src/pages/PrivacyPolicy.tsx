@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheckIcon, Lock, ArrowLeft } from 'lucide-react';
+import { ShieldCheckIcon, LockIcon, ArrowLeftIcon } from '../components/Icons';
 
 export const PrivacyPolicy: React.FC = () => {
   return (
@@ -10,7 +10,7 @@ export const PrivacyPolicy: React.FC = () => {
         to="/"
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeftIcon className="w-4 h-4" />
         <span>Return to Main Portal</span>
       </Link>
 

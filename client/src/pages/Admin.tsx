@@ -3,22 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { getHospitals, createHospital, deleteHospital } from '../api/hospitals';
 import { getFeedbacks } from '../api/feedback';
 import { Hospital, Feedback } from '../types';
-import { 
-  ShieldCheck, 
-  Building2, 
-  Plus, 
-  Trash2, 
-  MessageSquare, 
-  Star, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Loader2, 
-  Phone, 
-  MapPin,
-  Activity,
-  Navigation
-} from 'lucide-react';
+import { ShieldCheckIcon, HospitalIcon, PlusIcon, TrashIcon, ChatBubbleIcon, StarIcon, ClockIcon, CheckCircleIcon, AlertCircleIcon, LoaderIcon, PhoneIcon, MapPinIcon, ActivityIcon, NavigationIcon } from '../components/Icons';
 
 export const Admin: React.FC = () => {
   const { user } = useAuth();
@@ -141,7 +126,7 @@ export const Admin: React.FC = () => {
       <div className="bg-slate-900 rounded-2xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-slate-800">
         <div className="space-y-1.5">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-teal-900/60 border border-teal-700 text-teal-300 text-xs font-semibold">
-            <ShieldCheck className="w-4 h-4 text-teal-400" />
+            <ShieldCheckIcon className="w-4 h-4 text-teal-400" />
             <span>Administrator Access Control (RBAC)</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -188,9 +173,9 @@ export const Admin: React.FC = () => {
         >
           <div className="flex items-center gap-2">
             {hospitalMsg.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <CheckCircleIcon className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <AlertCircleIcon className="w-4 h-4 text-red-600 shrink-0" />
             )}
             <span>{hospitalMsg.text}</span>
           </div>
@@ -214,7 +199,7 @@ export const Admin: React.FC = () => {
               onClick={() => setShowAddHospitalModal(true)}
               className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <PlusIcon className="w-4 h-4" />
               <span>Add Hospital Entry</span>
             </button>
           </div>
@@ -223,7 +208,7 @@ export const Admin: React.FC = () => {
           <div className="bg-white rounded-2xl border border-slate-300 overflow-hidden">
             {isLoadingHospitals ? (
               <div className="py-16 text-center">
-                <Loader2 className="w-8 h-8 text-teal-700 animate-spin mx-auto mb-2" />
+                <LoaderIcon className="w-8 h-8 text-teal-700 animate-spin mx-auto mb-2" />
                 <p className="text-xs text-slate-500">Loading directory records...</p>
               </div>
             ) : hospitals.length === 0 ? (
@@ -278,7 +263,7 @@ export const Admin: React.FC = () => {
                             className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                             title="Delete Hospital Record"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <TrashIcon className="w-4 h-4" />
                           </button>
                         </td>
                       </tr>
@@ -303,7 +288,7 @@ export const Admin: React.FC = () => {
             </div>
             <div className="flex items-center gap-3 bg-amber-50 px-4 py-2 rounded-xl border border-amber-200">
               <div className="flex items-center gap-1 text-amber-500">
-                <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
+                <StarIcon className="w-5 h-5 fill-amber-400 text-amber-400" />
               </div>
               <div>
                 <p className="text-xs font-bold text-amber-900">
@@ -319,7 +304,7 @@ export const Admin: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {isLoadingFeedback ? (
               <div className="col-span-full py-16 text-center">
-                <Loader2 className="w-8 h-8 text-teal-700 animate-spin mx-auto mb-2" />
+                <LoaderIcon className="w-8 h-8 text-teal-700 animate-spin mx-auto mb-2" />
                 <p className="text-xs text-slate-500">Loading user reviews...</p>
               </div>
             ) : feedbacks.length === 0 ? (
