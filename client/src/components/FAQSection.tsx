@@ -85,7 +85,7 @@ export const FAQSection: React.FC = () => {
                     {faq.question}
                   </span>
                 </div>
-                <ChevronDown
+                <ChevronDownIcon
                   className={`w-4 h-4 text-slate-500 shrink-0 transition-transform duration-200 ${
                     isOpen ? 'rotate-180 text-teal-700' : ''
                   }`}

@@ -320,7 +320,7 @@ export const Admin: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       {[...Array(5)].map((_, idx) => (
-                        <Star
+                        <StarIcon
                           key={idx}
                           className={`w-3.5 h-3.5 ${
                             idx < f.rating
