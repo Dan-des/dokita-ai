@@ -398,15 +398,17 @@ const generateMedicalTriage = async (prompt, history = [], location = null, mode
     throw new Error('AI service is not configured. Please set GEMINI_API_KEY in environment variables.');
   }
 
-  // 1. Primary: Gemini with real-time Google Search grounding
-  try {
-    console.log('[AI Engine] Attempting Gemini Web Search grounding...');
-    return await callGeminiWebSearch(prompt, history, geminiKey, hospitalContext);
-  } catch (webErr) {
-    console.warn(`[AI Engine] Web search grounding failed (${webErr.message}). Falling back to standard Gemini...`);
+  // 1. Primary: If mode is websearch, try Gemini with real-time Google Search grounding
+  if (mode === 'websearch') {
+    try {
+      console.log('[AI Engine] Attempting Gemini Web Search grounding...');
+      return await callGeminiWebSearch(prompt, history, geminiKey, hospitalContext);
+    } catch (webErr) {
+      console.log(`[AI Engine] Web search grounding failed (${webErr.message}). Falling back to standard Gemini...`);
+    }
   }
 
-  // 2. Secondary: Standard Gemini (uses training knowledge, no live search)
+  // 2. Standard Gemini (uses training knowledge, no live search)
   try {
     console.log('[AI Engine] Attempting standard Gemini...');
     return await callGeminiStandard(prompt, history, geminiKey, hospitalContext);
