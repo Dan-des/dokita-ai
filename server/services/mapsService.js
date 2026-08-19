@@ -165,55 +165,75 @@ const queryOverpassHospitals = async (lat, lng, radiusMeters = 25000) => {
 };
 
 /**
- * Query Google Places Nearby Search API if GOOGLE_MAPS_API_KEY is configured
+ * Query Google Places Nearby Search API (New Places API v1)
  */
 const queryGooglePlacesHospitals = async (lat, lng, radiusMeters = 25000, apiKey) => {
-  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radiusMeters}&type=hospital&key=${apiKey}`;
+  const url = 'https://places.googleapis.com/v1/places:searchNearby';
 
   try {
-    const response = await axios.get(url, { timeout: 8000 });
-    const results = response.data?.results || [];
-
-    // Query details in parallel for the top 5 results to retrieve actual phone numbers
-    return Promise.all(
-      results.slice(0, 5).map(async (place) => {
-        const itemLat = place.geometry?.location?.lat;
-        const itemLng = place.geometry?.location?.lng;
-        const distance = calculateDistanceKm(lat, lng, itemLat, itemLng);
-
-        let phone = '+234 112 / 767';
-        try {
-          const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=formatted_phone_number,international_phone_number&key=${apiKey}`;
-          const detailsResponse = await axios.get(detailsUrl, { timeout: 3000 });
-          const details = detailsResponse.data?.result;
-          if (details) {
-            phone = details.formatted_phone_number || details.international_phone_number || phone;
-          }
-        } catch (detailErr) {
-          console.warn(`[Google Places Details] Failed to fetch details for ${place.place_id}: ${detailErr.message}`);
-        }
-
-        return {
-          _id: `gplace_${place.place_id}`,
-          name: place.name,
-          address: place.vicinity || 'Local Area',
-          city: 'Local Area',
-          state: 'Emergency Zone',
-          phone: phone,
-          is24Hours: place.opening_hours?.open_now !== false,
-          latitude: itemLat,
-          longitude: itemLng,
-          distanceKm: distance,
-          source: 'Live Google Places API',
-          rating: place.rating,
-          googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-            place.name
-          )}&query_place_id=${place.place_id}`,
-        };
-      })
+    const response = await axios.post(
+      url,
+      {
+        includedTypes: ['hospital', 'emergency_room'],
+        maxResultCount: 15,
+        locationRestriction: {
+          circle: {
+            center: {
+              latitude: lat,
+              longitude: lng,
+            },
+            radius: Math.min(radiusMeters, 50000.0),
+          },
+        },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask':
+            'places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.internationalPhoneNumber,places.location,places.currentOpeningHours,places.rating,places.googleMapsUri',
+        },
+        timeout: 8000,
+      }
     );
+
+    const places = response.data?.places || [];
+
+    return places.map((place) => {
+      const itemLat = place.location?.latitude;
+      const itemLng = place.location?.longitude;
+      const distance = calculateDistanceKm(lat, lng, itemLat, itemLng);
+      const name = place.displayName?.text || 'Hospital';
+      const address = place.formattedAddress || 'Local Area';
+      const phone =
+        place.nationalPhoneNumber ||
+        place.internationalPhoneNumber ||
+        '+234 112 / 767 (Emergency Line)';
+      const is24Hours = place.currentOpeningHours?.openNow !== false;
+      const googleMapsUrl =
+        place.googleMapsUri ||
+        `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+          `${name}, ${address}`
+        )}`;
+
+      return {
+        _id: `gplace_${place.id || Math.random().toString(36).substr(2, 9)}`,
+        name,
+        address,
+        city: 'Local Area',
+        state: 'Emergency Zone',
+        phone,
+        is24Hours,
+        latitude: itemLat,
+        longitude: itemLng,
+        distanceKm: distance,
+        source: 'Live Google Places API',
+        rating: place.rating,
+        googleMapsUrl,
+      };
+    });
   } catch (err) {
-    console.warn(`[Google Places] Live query notice: ${err.message}`);
+    console.warn(`[Google Places New] Live query notice: ${err.response?.data?.error?.message || err.message}`);
     return [];
   }
 };
