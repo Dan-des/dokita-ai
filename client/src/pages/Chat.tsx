@@ -742,7 +742,7 @@ export const Chat: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center gap-2 truncate pr-1 min-w-0">
-                    <MessageSquare
+                    <ChatBubbleIcon
                       className={`w-3.5 h-3.5 shrink-0 ${
                         isSelected ? 'text-teal-400' : 'text-slate-500 group-hover:text-slate-300'
                       }`}

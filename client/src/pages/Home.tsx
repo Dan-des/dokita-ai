@@ -30,17 +30,17 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
     {
       title: 'Multilingual Clinical Triage',
       desc: 'Communicate naturally in English, Nigerian Pidgin, Yoruba, Hausa, or Igbo. Get immediate preliminary guidance and red-flag alerts.',
-      icon: Globe,
+      icon: GlobeIcon,
     },
     {
       title: 'Real-Time Hospital Finder',
       desc: 'Ask DokitaAI for nearby 24/7 emergency rooms and verified clinics using your live GPS location — no manual searching needed.',
-      icon: Building2,
+      icon: HospitalIcon,
     },
     {
       title: 'Doctor Briefing Export',
       desc: 'Generate a structured clinical summary PDF at any time to share with attending hospital doctors and specialists.',
-      icon: FileDown,
+      icon: FileDownIcon,
     },
   ];
 
