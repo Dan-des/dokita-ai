@@ -20,6 +20,64 @@ if (vapidPublicKey && vapidPrivateKey) {
 }
 
 /**
+ * Dispatch due medication reminders via Web Push
+ */
+async function dispatchDueReminders() {
+  const now = new Date();
+  const utcHours = now.getUTCHours();
+  const utcMinutes = now.getUTCMinutes();
+
+  // Query all active reminders
+  const activeReminders = await ScheduledReminder.find({ isActive: true }).lean();
+  if (!activeReminders || activeReminders.length === 0) {
+    return { totalDue: 0, successCount: 0, failCount: 0 };
+  }
+
+  // Filter reminders whose local time matches current time
+  const dueReminders = activeReminders.filter((rem) => {
+    const offset = rem.timezoneOffset !== undefined ? rem.timezoneOffset : -60; // default WAT (UTC+1)
+    let localMinutes = (utcHours * 60) + utcMinutes - offset;
+    localMinutes = ((localMinutes % 1440) + 1440) % 1440;
+    const localHour = Math.floor(localMinutes / 60);
+    const localMinute = localMinutes % 60;
+    const localTimeString = `${localHour.toString().padStart(2, '0')}:${localMinute.toString().padStart(2, '0')}`;
+    return rem.time === localTimeString;
+  });
+
+  let successfulCount = 0;
+  let failedCount = 0;
+
+  const pushPromises = dueReminders.map(async (rem) => {
+    const payload = JSON.stringify({
+      title: `⏰ DokitaAI Medication Reminder`,
+      body: `It's time to take your ${rem.medication} (${rem.dosage}). ${rem.instructions || ''}`,
+      icon: '/icon-192.svg',
+      badge: '/favicon.svg',
+      url: '/chat'
+    });
+
+    try {
+      await webpush.sendNotification(rem.subscription, payload);
+      successfulCount++;
+    } catch (err) {
+      console.warn(`[Push Dispatcher] Push failed for reminder ${rem.reminderId}:`, err.message);
+      failedCount++;
+      if (err.statusCode === 410 || err.statusCode === 404) {
+        console.log(`[Push Dispatcher] Removing invalid subscription for reminder: ${rem.reminderId}`);
+        await ScheduledReminder.deleteOne({ _id: rem._id });
+      }
+    }
+  });
+
+  await Promise.all(pushPromises);
+  return {
+    totalDue: dueReminders.length,
+    successCount: successfulCount,
+    failCount: failedCount
+  };
+}
+
+/**
  * @route   GET /api/reminders
  * @desc    Get user's scheduled reminders
  * @access  Private
@@ -43,7 +101,7 @@ router.get('/', verifyToken, async (req, res) => {
  */
 router.post('/', verifyToken, async (req, res) => {
   try {
-    const { reminderId, medication, dosage, time, instructions, subscription, isActive } = req.body;
+    const { reminderId, medication, dosage, time, instructions, timezoneOffset, subscription, isActive } = req.body;
 
     if (!reminderId || !medication || !time || !subscription) {
       return res.status(400).json({
@@ -59,6 +117,7 @@ router.post('/', verifyToken, async (req, res) => {
       reminder.dosage = dosage?.trim() || reminder.dosage;
       reminder.time = time.trim();
       reminder.instructions = instructions?.trim() || reminder.instructions;
+      if (timezoneOffset !== undefined) reminder.timezoneOffset = Number(timezoneOffset);
       reminder.subscription = subscription;
       if (isActive !== undefined) reminder.isActive = Boolean(isActive);
       await reminder.save();
@@ -70,6 +129,7 @@ router.post('/', verifyToken, async (req, res) => {
         dosage: dosage?.trim(),
         time: time.trim(),
         instructions: instructions?.trim(),
+        timezoneOffset: timezoneOffset !== undefined ? Number(timezoneOffset) : -60,
         subscription,
         isActive: isActive !== undefined ? Boolean(isActive) : true
       });
@@ -130,7 +190,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
 /**
  * @route   GET /api/reminders/cron-trigger
  * @desc    Vercel Cron endpoint triggered every minute to process active reminders and dispatch web push notifications
- * @access  Public (Protected via Vercel-specific x-vercel-cron header)
+ * @access  Public (Protected via Vercel-specific x-vercel-cron header or internal cron)
  */
 router.get('/cron-trigger', async (req, res) => {
   const isVercelCron = req.headers['x-vercel-cron'] === '1' || process.env.NODE_ENV === 'development';
@@ -139,56 +199,11 @@ router.get('/cron-trigger', async (req, res) => {
   }
 
   try {
-    // Current time in West Africa Time (WAT) (UTC + 1 hour)
-    const now = new Date();
-    const watHour = (now.getUTCHours() + 1) % 24;
-    const watMinute = now.getUTCMinutes();
-    const currentTimeString = `${watHour.toString().padStart(2, '0')}:${watMinute.toString().padStart(2, '0')}`;
-
-    console.log(`[Cron Dispatcher] Checking reminders for WAT time: ${currentTimeString}`);
-
-    // Query active reminders matching current time
-    const dueReminders = await ScheduledReminder.find({
-      time: currentTimeString,
-      isActive: true
-    }).lean();
-
-    console.log(`[Cron Dispatcher] Found ${dueReminders.length} due reminders.`);
-
-    let successfulCount = 0;
-    let failedCount = 0;
-
-    const pushPromises = dueReminders.map(async (rem) => {
-      const payload = JSON.stringify({
-        title: `⏰ DokitaAI Medication Reminder`,
-        body: `It's time to take your ${rem.medication} (${rem.dosage}). ${rem.instructions || ''}`,
-        icon: '/icon-192.svg',
-        badge: '/favicon.svg',
-        url: '/chat'
-      });
-
-      try {
-        await webpush.sendNotification(rem.subscription, payload);
-        successfulCount++;
-      } catch (err) {
-        console.warn(`[Cron Dispatcher] Push failed for reminder ${rem.reminderId}:`, err.message);
-        failedCount++;
-        // If the push service returns 410 Gone or 404, the subscription is expired/invalid, we should delete it
-        if (err.statusCode === 410 || err.statusCode === 404) {
-          console.log(`[Cron Dispatcher] Removing invalid subscription for reminder: ${rem.reminderId}`);
-          await ScheduledReminder.deleteOne({ _id: rem._id });
-        }
-      }
-    });
-
-    await Promise.all(pushPromises);
-
+    const results = await dispatchDueReminders();
     return res.status(200).json({
       success: true,
-      timeChecked: currentTimeString,
-      totalDue: dueReminders.length,
-      successCount: successfulCount,
-      failCount: failedCount
+      timestamp: new Date().toISOString(),
+      ...results
     });
   } catch (error) {
     console.error('[Cron Dispatcher Error]', error);
@@ -196,4 +211,4 @@ router.get('/cron-trigger', async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = { router, dispatchDueReminders };

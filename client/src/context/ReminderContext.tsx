@@ -163,6 +163,7 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 dosage: med.dosage,
                 time: med.time,
                 instructions: med.instructions,
+                timezoneOffset: new Date().getTimezoneOffset(),
                 subscription,
                 isActive: true
               }).catch(err => console.warn('[Backend Reminder Sync Failed]', err));
@@ -180,6 +181,7 @@ export const ReminderProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     dosage: med.dosage,
                     time: med.time,
                     instructions: med.instructions,
+                    timezoneOffset: new Date().getTimezoneOffset(),
                     subscription,
                     isActive: true
                   }).catch(err => console.warn('[Backend Reminder Sync Failed]', err));

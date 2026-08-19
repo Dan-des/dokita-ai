@@ -7,6 +7,7 @@ const ScheduledReminderSchema = new mongoose.Schema({
   dosage: { type: String, default: '1 standard dose' },
   time: { type: String, required: true }, // "HH:MM" in local 24h format
   instructions: { type: String },
+  timezoneOffset: { type: Number, default: -60 }, // Difference in minutes between UTC and user local time (e.g. -60 for WAT)
   subscription: { type: Object, required: true }, // PushSubscription
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }

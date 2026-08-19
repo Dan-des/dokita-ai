@@ -10,7 +10,7 @@ const chatRoutes = require('./routes/chat');
 const hospitalRoutes = require('./routes/hospital');
 const feedbackRoutes = require('./routes/feedback');
 const whatsappRoutes = require('./routes/whatsapp');
-const reminderRoutes = require('./routes/reminder');
+const { router: reminderRoutes, dispatchDueReminders } = require('./routes/reminder');
 
 const app = express();
 
@@ -88,6 +88,18 @@ const startServer = async (customPort) => {
     await seedInitialData();
 
     const PORT = customPort || process.env.PORT || 5000;
+
+    // Start background push notification scheduler if not in serverless runtime
+    if (!process.env.VERCEL) {
+      setInterval(async () => {
+        try {
+          await dispatchDueReminders();
+        } catch (schedErr) {
+          console.error('[Background Scheduler Error]', schedErr.message);
+        }
+      }, 60000);
+      console.log('⏰ Background push notification scheduler initialized (60s tick)');
+    }
 
     const server = app.listen(PORT, () => {
       console.log(`====================================================`);
