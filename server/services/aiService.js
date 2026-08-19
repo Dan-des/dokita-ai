@@ -22,17 +22,15 @@ const MEDICAL_AUTHORITY_SOURCES = [
  * Gemini models — updated to current available names (Aug 2026)
  * gemini-3.6-flash is the current fastest; fallback chain below
  */
-const GEMINI_MODELS_PRIMARY = 'gemini-2.5-flash';
+const GEMINI_MODELS_PRIMARY = 'gemini-3.6-flash';
 const GEMINI_MODELS_POOL = [
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
+  'gemini-3.6-flash',
   'gemini-1.5-flash',
 ];
 
 // Web-search-capable models (support googleSearch grounding tool)
 const GEMINI_SEARCH_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
+  'gemini-3.6-flash',
   'gemini-1.5-flash',
 ];
 
