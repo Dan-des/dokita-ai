@@ -7,12 +7,17 @@ server/node_modules/
 dist/
 client/dist/
 build/
+.next/
+out/
 
 # Environment Variables & Secrets (CRITICAL)
 .env
 .env.local
 .env.*.local
+*.env
+*.env.local
 server/.env
+client/.env
 client/.env.local
 
 # Logs
