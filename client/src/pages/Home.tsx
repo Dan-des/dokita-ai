@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { HospitalIcon, ArrowRightIcon, SearchIcon, StethoscopeIcon, ShareIcon, HelpIcon, ShieldCheckIcon, GlobeIcon, FileDownIcon, PhoneIcon } from '../components/Icons';
+import { safeStorage } from '../utils/storage';
+import {
+  HospitalIcon,
+  ArrowRightIcon,
+  SearchIcon,
+  StethoscopeIcon,
+  ShareIcon,
+  HelpIcon,
+  ShieldCheckIcon,
+  GlobeIcon,
+  FileDownIcon,
+  PhoneIcon,
+  SmartphoneIcon,
+} from '../components/Icons';
 import { SymptomChip } from '../components/SymptomChip';
 import { FAQSection } from '../components/FAQSection';
 import { SocialShareModal } from '../components/SocialShareModal';
+import { AppOnboardingLanding } from '../components/AppOnboardingLanding';
 
 interface HomeProps {
   onOpenFeedback: () => void;
@@ -17,7 +31,31 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Trigger entrance animations after mount
+  // App onboarding view state (active by default in standalone PWA mode and mobile devices before login)
+  const isPwaStandalone =
+    typeof window !== 'undefined' &&
+    (window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true);
+
+  const [showAppOnboarding, setShowAppOnboarding] = useState<boolean>(() => {
+    // If user explicitly chose web view on this device, respect it
+    const preferredView = safeStorage.getItem('dokita_preferred_view');
+    if (preferredView === 'web') return false;
+    if (isPwaStandalone) return true;
+    // On mobile devices, show app onboarding on first visit if not authenticated
+    if (typeof window !== 'undefined' && window.innerWidth < 768 && !safeStorage.getItem('dokita_onboarded')) {
+      return true;
+    }
+    return false;
+  });
+
+  // If already authenticated and in PWA standalone mode, skip onboarding directly into chat
+  useEffect(() => {
+    if (isAuthenticated && isPwaStandalone) {
+      navigate('/chat', { replace: true });
+    }
+  }, [isAuthenticated, isPwaStandalone, navigate]);
+
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
@@ -34,7 +72,7 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
     },
     {
       title: 'Real-Time Hospital Finder',
-      desc: 'Ask DokitaAI for nearby 24/7 emergency rooms and verified clinics using your live GPS location — no manual searching needed.',
+      desc: 'Ask DokitaAI for nearby 24/7 emergency rooms and verified clinics using your live GPS location - no manual searching needed.',
       icon: HospitalIcon,
     },
     {
@@ -72,16 +110,36 @@ export const Home: React.FC<HomeProps> = ({ onOpenFeedback }) => {
     handleLaunchChat(quickQuestion);
   };
 
+  const handleDismissToWeb = () => {
+    safeStorage.setItem('dokita_preferred_view', 'web');
+    safeStorage.setItem('dokita_onboarded', 'true');
+    setShowAppOnboarding(false);
+  };
+
+  // If in App Onboarding mode, render the full-screen anticipatory app experience
+  if (showAppOnboarding && !isAuthenticated) {
+    return <AppOnboardingLanding onDismissToWeb={handleDismissToWeb} />;
+  }
+
   return (
     <div className="space-y-12 pb-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-
       {/* 1. HERO SECTION */}
       <section className="pt-8 md:pt-14 space-y-6 text-center">
+        {/* Clinical Platform Badge & App Mode Preview Pill */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 text-xs font-semibold">
+            <ShieldCheckIcon className="w-3.5 h-3.5 text-teal-700" />
+            <span>Clinical AI Telehealth Assistant • Verified Guidelines (WHO / CDC / NHS)</span>
+          </div>
 
-        {/* Clinical Platform Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 text-xs font-semibold">
-          <ShieldCheckIcon className="w-3.5 h-3.5 text-teal-700" />
-          <span>Clinical AI Telehealth Assistant • Verified Guidelines (WHO / CDC / NHS)</span>
+          <button
+            type="button"
+            onClick={() => setShowAppOnboarding(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-300 text-teal-800 hover:bg-teal-100 text-xs font-semibold transition-colors cursor-pointer"
+          >
+            <SmartphoneIcon className="w-3.5 h-3.5 text-teal-700" />
+            <span>Open App Mode</span>
+          </button>
         </div>
 
         <div className="space-y-3 max-w-2xl mx-auto">

@@ -1,5 +1,6 @@
-require('dotenv').config({ path: __dirname + '/../.env' });
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'dokita_super_secret_jwt_key_2026';
 process.env.ADMIN_REGISTRATION_KEY = 'dokita_master_admin_secret_key_2026';
+process.env.WHATSAPP_VERIFY_TOKEN = 'dokita_whatsapp_verify_token_2026';
 
 const axios = require('axios');
 const { startServer } = require('../index');
